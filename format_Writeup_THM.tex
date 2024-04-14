@@ -17,18 +17,23 @@
 \usepackage{nameref}
 \usepackage{enumitem} %used to continue enumeration after a break for clarification text.
 \usepackage{etaremune} %this package is used to have an enumeration with backwards counting.
-
+\usepackage{subfiles} %used to allow for clearer dependencies of Main Writeup
+\usepackage{cprotect} %used to allow for a neat \verb with different fonts
+\usepackage{listings} %used to format Code outside of latex
 %Renaming and adjusting of names 
 \newenvironment{mune}{\etaremune}{\endetaremune}
 \newcommand{\Crackstation}{\href{https://crackstation.net}{Crackstation}}
 \newcommand{\code}{\texttt}
-\newcommand{\cd}{\texttt}
+\newcommand{\cd}[1]{%
+	\texttt{#1}
+	}
 \newcommand{\cdnl}{\codenl}
 \newcommand{\codenl}[1]{%
 	\begin{center}%
 		\texttt{#1}
 	\end{center}%
-}
+	}
+\newcommand{\dt}{\detokenize}
 \newcommand{\bsl}{\backslash}
 
 \newcommand{\QA}[2]{%

