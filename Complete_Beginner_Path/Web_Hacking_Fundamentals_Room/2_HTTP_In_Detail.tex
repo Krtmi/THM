@@ -1,0 +1,284 @@
+\addcontentsline{toc}{subsubsection}{HTTP in detail}
+\subsubsection*{HTTP in detail}
+\T{What is HTTP(S)?}{
+HTTP stands for HyperText Transfer Protocol and is the set of rules used to communicate with web servers to transmit data, be it in the form of HTML, multimedia, etc.\\
+HTTPS is the secure version of HTTP, as it is encrypted both covering the authenticity and confidentiality parts of security.\\
+\QA{
+What does HTTP stand for?
+}{
+HyperText Transfer Protocol
+}
+\QA{
+What does the S in HTTPS stand for?
+}
+{
+Secure
+}
+\QA{
+On the mock webpage on the right there is an issue, once you've found it, click on it. What is the challenge flag?
+}{
+We click on the striked lock on the website on the right denoting the absence of https or, in general, encryption, and get a pop up window with the flag:
+\F{THM\{INVALID\_HTTP\_CERT\}}
+}
+}
+\T{Requests And Responses}{
+When accessing a website, the browser makes requests to a webserver to load the site contents and get eventual responses. \\
+In order to allow the browser to communicate with the server, we provide it with a target URL (Uniform Resource Locator), roughly speaking an instruction on how to access our target.\\
+The general syntax is as follows:
+\codenl{<scheme>://[user]$@$<host/domain>:[port]/[path][?query string][\#fragment]}
+which in a real world example would look like this:
+\codenl{http://user:password$@$tryhackme.com:80/view-room?id=1\#task3}
+Breaking down the syntax:
+\begin{itemize}
+\item Scheme: The scheme gives the browser instructions on which protocol to use to access the desired data, e.g HTTP(S), FTP...
+\item User: The user provides the authentication credentials to log in, which can directly be provided in the URL.
+\item Host: The host gives the domain name or IP address of the server we want to contact.
+\item Port: We can select any port we want, though default is 80 for http and 443 for https.
+\item Path: The file name or location of the desired ressource.
+\item Query string: Extra information additional to the path.\\We can use e.g \cd{/blog?id=1} to tell the blog path to access the ressource with id of 1.
+\item Fragment: This references part of the target content, especially in websites with long contents, when we want to access only part of it instead of the head of the page.
+\end{itemize}
+A request is composed of the request method, the page being requested and the HTTP protocol version.\\
+The minimal HTTP request is \cd{GET / HTTP/1.1}, which doesn't result in much information being loaded. In order to load further contents we will send more request data in the form of headers.\\
+An example request has the form:\\
+\cd{
+GET / HTTP/1.1\\
+Host: tryhackme.com\\
+User-Agent: Mozilla/5.0 Firefox/87.0\\
+Referer: https://tryhackme.com\\
+}
+The request breaks up linewise as follows:
+\begin{enumerate}
+\item Sends the GET method, requesting the home page by sending a ``\cd{/}'' as site request and specifies the protocol and its version as \cd{HTTP 1.1}
+\item Calls the requested website as host.
+\item Tells the browser we are using and its version, in this case Mozilla Firefox version 87.0
+\item The page which derived us here is \cd{https://tryhackme.com}
+\item A blank line to communicate the end of the request.
+\end{enumerate}
+The response then is made up from the website we want to load, if our request was successful.\\
+A basic example of the response could be as follows:\\
+\cd{
+HTTP/1.1 200 OK\\
+Server: nginx/1.15.8\\
+Date: Fri, 09 Apr 2021 13:34:03 GMT\\
+Content-Type: text/html\\
+Content-Length: 98\\
+\newline
+<html>\\
+<head>\\
+\indent    <title>TryHackMe</title>\\
+</head>\\
+<body>\\
+\indent    Welcome To TryHackMe.com\\
+</body>\\
+</html>\\
+}
+Broken down linewise again:
+\begin{enumerate}
+\item Protocol version and HTTP Status Code: Here 200 OK means a successful request. 
+\item Web server software and version number.
+\item Date, time and timezone of the server.
+\item Content-Type: what sort of information is going to be sent.
+\item Content-Length: Serves to confirm no data is missing.
+\item Blank line after the HTTP response
+\item[7.-14.] Requested webpage information 
+\end{enumerate}
+
+\QA{
+What HTTP protocol is being used in the above example?
+}{
+HTTP/1.1
+}
+\QA{
+What response header tells the browser how much data to expect? 
+}{
+Content-Length
+}
+}
+\T{HTTP Methods}{
+HTTP methods determine the kind of interaction we as client want to perform on or with the server.\\
+The most basic HTTP methods are the following:
+\begin{itemize}
+\item GET: Used to get information from the webserver.
+\item POST: Used to submit data to the webserver, including the creation of new records.
+\item PUT: Used to submit data to update information on the webserver
+\item DELETE: Used to delete data from the webserver.
+\end{itemize}
+\QA{
+What method would be used to create a new user account?
+}{
+\cd{POST}
+}
+\QA{
+What method would be used to update your email address? 
+}{
+\cd{PUT}
+}
+\QA{
+What methoud would be used to remove a picture you've uploaded to your account? 
+}{
+\cd{DELETE}
+}
+\QA{
+What method would be used to view a news article? 
+}{
+\cd{GET}
+}
+}
+\T{HTTP Status Codes}{
+As seen in the task before, the first line of an HTTP response is the HTTP status code. Depending on their initial number, they can be assigned to different cases: 
+\begin{itemize}
+\item 100-199: The first part of the request has been accepted, the client shall continue sending the rest of their request. Rather in disuse.
+\item 200-299: Successful request.
+\item 300-399 - Redirection: Used to redirect the request to another resource, be it a different webpage or website.
+\item 400-499 - Client Errors: Error with the client request.
+\item 500-599 - Server Errors: Errors on the server side of the request handling.
+\end{itemize}
+Some of the most common status codes accross all categories are the following:
+\begin{itemize}
+\item 200-OK: Request completed successfully.
+\item 201-Created: Resource (e.g user, blog entry) created successfully.
+\item 301-Moved permanently: The originally requested website has moved permanently, indicates where to look for the new address.
+\item 302-Found: The originally requested website has moved temporarily, redirects to the current new direction of the website. 
+\item 400-Bad Request: The request sent by the client is either incomplete or wrong.
+\item 401-Not Atuhorised: Until login with the right credentials this request is blocked. 
+\item 403-Forbidden: This resource is blocked, no matter the credentials.
+\item 404-Page Not Found: The requested page does not exist.
+\item 405-Method Not Allowed: Wrong combination of HTTP method and intention, e.g using a \cd{GET} request to create an account.
+\item 500-Internal Service Error: The server has some kind of error with the sent request it doesn't know how to handle.
+\item 503-Service Unavailable: The server cannot handle the request being down for maintenance or overloaded.
+\end{itemize}
+\QA{
+What response code might you receive if you've created a new user or blog post article?
+}{
+201
+}
+\QA{
+What response code might you receive if you've tried to access a page that doesn't exist?
+}{
+404
+}
+\QA{
+What response code might you receive if the web server cannot access its database and the application crashes?
+}{
+503
+}
+\QA{
+What response code might you receive if you try to edit your profile without logging in first?
+}{
+501
+}
+}
+\T{Headers}{
+As we saw before, headers are the aditional information sent to the server to specify some information about the data being transmitted. They are not necessary, but very rarely a request without them will result in the expected browsing experience.\\
+
+The most common Request headers are: 
+\begin{itemize}
+\item Host: Specifies the requested website in case the web server hosts multiple. If not passed, the request will be handled as passing the default website for the server
+\item User-Agent: Tells the browser software and version number to help format the requested website and handle HTML, JS and CSS elements.
+\item Content-Length: Ensures no data loss has happened along the way
+\item Accept-Encoding: Tells the supported compression methods to help with data transmission. 
+\item Cookie: Help the server remember our information.
+\end{itemize}
+
+The most common Response headers are:
+\begin{itemize}
+\item Set-Cookie: Sets the cookie information for later requests.
+\item Cache-Control: Tells how long to store the response in the browser's cache. 
+\item Content-Type: Tells the client which type of data are being returned, e.g HTML, CSS, JS, Images, PDF, etc. such that the browser knows how to process the data. 
+\item Content-Encoding: Specifies the compression method sfor transmission.
+\end{itemize}
+\QA{
+What header tells the web server what browser is being used? 
+}{
+User-Agent
+}
+\QA{
+What header tells the browser what type of data is being returned? 
+}{
+Content-Type
+}
+\QA{
+What header tells aewsffffeejeawweasfsewwesafefwsewseefwsewsfeej,wefswesaewsafwaeswesawesjeewaeswesafseafwasweaaffffffffffffffffffeeeawsewseafffffffffaaaaaaaaafasewaafffffffffffwesafwswwwswewseaeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffaffffffffffffffffaaaaaaaaaaaaaasedfewafssaefewafssefewafssefwewfasjkjjeswewfsdfewsfefwefawsewfsefwewsfaewfasewwfjfefdwsjjefjjjefjjefwsefwsjfejjjjejjjjjfeedfwjejjeewsfefwedfwsjeefwjsjeefjewedfjjjjjjejejjedfwsjedfwjjfefjjedfwjewjefwefwsaeeefewasaeeefefjefdwfaeewfsdfdeefwdefewfsdeefwewefwjfeefwefefwaeesaeewfeeeedeejjeedjwaeeedeedfjefjjedjeedfwjefjeejefaeeedfeafeeeefdwefefwfjeefjefwjjeefjjewsfeefwjeweefweffdeeafweewfwaefwefdweeefjjefwjeedfjeeefjefefeedfjfdeedfjefwefjeffeefdwefjjedfjfjjfjefjjeefwjefdewjeffewjeefsefefjsjjefdwsefwsefweweafefweweewseaeewfedwefdwsfaefwsewsfdjjedjewffdeeffaewfjjefefdwsdefwsefdwsefwsefwsfewjjefjjjedfwjjjjedfwjedeedfweffewsjedfjefewjjefjjefejefdewfejejeffeeefweeefejjfefwsjefdwfewewsfdefdwsewsffedwsewsfaaeeeswfdefdwsewsafefwsefdwsefdwseseefswwwwwwwwwwwwwwwwwwwwwwwwwwwwwewsfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafejfjeffewedfwfeawsjjejjfthe web server which website is being requested? 
+}{
+Host
+}
+}
+\T{Cookies}{
+Cookies are small pieces of data that are stored on the client computer and saved at server response under the header \cd{Set-Cookie}.\\
+Every further request the client makes will send the cookie back to the server with the \cd{Cookie} header to keep track locally of the previous requests done, as HTTP being stateless cannot store that information.\\
+Cookies serve, among other things, to save website preferences, credentials and much more. They especially serve to authenticate users, as they are usually sent in the form of tokens.\\
+
+To view one's cookies, one only has to open the Web Developer Tools and click on the Network tab. This will show a list of all requested resources, and under the Cookies tab of each request one can find the eventually requested cookies.
+\QA{
+Which header is used to save cookies to your computer? 
+}{
+Set-Cookie
+}
+}
+\T{Making Requests}{
+This last task is an emulator for HTTP requests and the questions are the arising flags after the correct execution of the requests.
+\QA{
+Make a GET request to \cd{/room}
+}{
+In the mock up search bar we complete the search path to \cd{https://tryhackme.com/room} and click ``Go'', seeing a flag as response.\\
+For the sake of completeness, our full request was:\\
+\cd{
+GET /room HTTP/1.1\\
+Host: tryhackme.com\\
+User-Agent: Mozilla/5.0 Firefox/87.0\\
+}
+The arising flag:
+\F{THM\{\_YOU'RE\_IN\_THE\_ROOM\}}
+}
+\QA{
+Make a GET request to /blog and using the gear icon set the id parameter to 1 in the URL field
+}{
+\cd{
+GET /blog?id=1 HTTP/1.1\\
+Host: tryhackme.com\\
+User-Agent: Mozilla/5.0 Firefox/87.0\\
+}
+and we get the flag
+\F{THM\{YOU\_FOUND\_THE\_BLOG\}}
+}
+\QA{
+Make a DELETE request to /user/1
+}{
+\cd{
+DELETE /user/1 HTTP/1.1\\
+Host: tryhackme.com\\
+User-Agent: Mozilla/5.0 Firefox/87.0\\
+Content-Length: 0\\
+}
+and find the flag
+\F{THM\{USER\_IS\_DELETED\}}
+}
+\QA{
+Make a PUT request to /user/2 with the username parameter set to admin
+}{
+\cd{
+PUT /user/2 HTTP/1.1\\
+Host: tryhackme.com\\
+User-Agent: Mozilla/5.0 Firefox/87.0\\
+Content-Length: 14\\
+\newline
+username=admin\\
+}
+\F{THM\{USER\_HAS\_UPDATED\}}
+}
+\QA{
+POST the username of thm and a password of letmein to /login
+}{
+\cd{
+POST /login HTTP/1.1\\
+Host: tryhackme.com\\
+User-Agent: Mozilla/5.0 Firefox/87.0\\
+Content-Length: 33\\
+\newline
+username=thm\&password=letmein\\
+}
+\F{THM\{HTTP\_REQUEST\_MASTER\}}
+}
+}
+This ends the room and we continue with the next one: BurpSuite Basics.

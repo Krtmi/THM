@@ -1,0 +1,21 @@
+
+=====================================================
+Gobuster v2.0.1              OJ Reeves (@TheColonial)
+=====================================================
+[+] Mode         : dir
+[+] Url/Domain   : http://jewel.uploadvulns.thm/content/
+[+] Threads      : 100
+[+] Wordlist     : /usr/share/wordlists/UploadVulnsWordlist.txt
+[+] Status codes : 200,204,301,302,307,403
+[+] Extensions   : jpg
+[+] Expanded     : true
+[+] Timeout      : 10s
+=====================================================
+=====================================================
+http://jewel.uploadvulns.thm/content/ABH.jpg (Status: 200)
+http://jewel.uploadvulns.thm/content/FBU.jpg (Status: 200)
+http://jewel.uploadvulns.thm/content/LKQ.jpg (Status: 200)
+http://jewel.uploadvulns.thm/content/SAD.jpg (Status: 200)
+http://jewel.uploadvulns.thm/content/UAD.jpg (Status: 200)
+=====================================================
+=====================================================

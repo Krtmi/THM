@@ -1,0 +1,35 @@
+\addcontentsline{toc}{subsubsection}{Intro to Offensive Security}
+\subsubsection*{Intro to Offensive Security}
+
+\T{What is Offensive Security?}{
+Offensive Security is the process of attacking computer systems, exploiting misconfigurations, bugs and loopholes in applications\\
+
+Defensive Security is the defensive part of the system and deals with protecting the network and its system, analyzing and securing potential threats, e.g investiganting infected computers, performing forensics jobs on them or monitoring the target infrastructure.\\
+
+\QA{
+Which of the following options better represents the process where you simulate a hacker's actions to find vulnerabilities in a system?\\
+\begin{itemize}
+\item Offensive Security
+\item Defensive Security
+\end{itemize}
+}{
+Offensive Security
+}
+}
+
+\T{Hacking your first machine}{
+We'll use a command-line application, called "GoBuster" to find hidden directories of a fake bank, hack into its fake website and find information.\\
+This will take place using a wordlist to compare to with the syntax: 
+\codenl{gobuster -u <website to check> -w <wordlist to check against>}
+here:
+\codenl{gobuster -u http://fakebank.com -w wordlist.txt}
+since we are "forced" to use the deployed machine and don't need to get any such wordlist from anywhere else.\\
+We find the hidden site \cd{/bank-transfer} and type it in the fake browser of the "FakeBank" app.\\
+Once there, we see an Admin site to simply transfer funds from one account to another, and once we transfer 2000€ from account 2276 to our own account 8881 and refresh the original site we see the answer of the only actual question of this task:
+\QA{
+Above your account balance, you should now see a message indicating the answer to this question. Can you find the answer you need?
+}{
+BANK-HACKED
+}
+The next questions are only checkboxes, as well as the following task, hence the exercise counts as done.
+}

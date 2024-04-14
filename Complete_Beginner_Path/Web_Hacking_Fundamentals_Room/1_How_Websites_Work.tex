@@ -1,0 +1,103 @@
+\addcontentsline{toc}{subsubsection}{How Websites Work}
+\subsubsection*{How Websites Work}
+\label{How_Websites_Work_Room}
+\T{How websites work}{
+When visiting a website, our browser makes a request to a web server asking for the information the page we want to visit is comprised of. With this information our browser can show us the webpage we want.\\
+A website id made up from two parts: Front End and Back End.\\
+The Front End or Client-Side is the way the browser shows the website.\\
+The Back End or Server-Side is the server processing the requests and responses.
+\QA{
+What term best describes the component of a web application rendered by your browser?
+}{
+Front End
+}
+}
+\T{HTML}{
+The main languages websites are programmed with are 
+\begin{itemize}
+\item HTML to build snd structure them
+\item CSS to customize the layout and style
+\item JavaScript to add interactive features
+\end{itemize}
+HTML stands for HyperText Markup Language and is the main language websites are written in.\\
+It is structured in Elements (tags) which tell the browser how to display the contents. \\
+The basic structure of a HTML site is as follows:\\
+<!DOCTYPE html>\\
+<html>\\
+\indent <head>\\
+\indent \indent <title> Page Title </title>\\
+\indent </head>\\
+\indent <body>\\
+\indent \indent <h1> Example Heading </h1>\\
+\indent \indent <p> Example Paragraph.. </p>\\
+\indent </body>\\
+</html>\\
+
+Breaking the structure down:\\
+\begin{itemize}
+\item <!DOCTYPE html> defines the page as an HTML5 document such that it is recognised across all browsers.
+\item <html> is the main element in an HTML page in which environment all other elements are set.
+\item <head> contains information  about the page.
+\item <body> defines the content of the HTML document, this is the only part shown in the browser.
+\item <h1> defines a large header.
+\item <p> defines a paragraph.
+\end{itemize}
+Tags can contain class attributes to change style and other similar features or src attributes to specify some other file as source. \\
+They can also have an id attribute (e.g <p id = ``example'') unique to the element, used to identify it by JavaScript.
+\QA{
+One of the images on the cat website is broken - fix it, and the image will reveal the hidden text answer!
+}{
+Once we fix the source of the image from \cd{<img src='img/cat-2.'>} to \cd{<img src='img/cat-2.jpg'>} we see a picture of a cat with the text \textbf{HTMLHERO} on it.
+}
+\QA{
+Add a dog image to the page by adding another img tag (<img>) on line 11. The dog image location is img/dog-1.png. What is the text in the dog image?
+}{
+We add the line of code \cd{<img src = 'img/dog-1.png'>} and see \textbf{DOGHTML} on the picture
+}
+}
+\T{JavaScript}{
+JavaScript (JS) makes it available for webpages to become interactive, and has become as such one of the most important coding languages.\\
+HTML is used to create the website's structure and content, JS for its functionality, else they would always be static.\\
+JS makes it possible to update a website in real time, change styles after a certain event occurs or to display moving animations.\\
+JS is added within the page's source code and loaded within \cd{<script>} tags or included remotely with the src attribute using the following syntax:
+\codenl{<script src="/location/of/javascript\_file.js"></script>}
+For this task, we'll embed the following JS code snippet into the website code displayed on the right half of the THM page:
+\codenl{document.getElementById("demo").innerHTML = "Hack the Planet";}
+What this does is finding the element with the id "demo" and change its contents to "Hack the Planet".\\
+Another useful event to have on JS are "onclick" and "onhover" that execute the JS code when that event occurs.\\
+In this task we are going to implement a button that changes its contents to "Button Clicked" when done so with the following syntax:
+\codenl{<button onclick='document.getElementById("demo").innerHTML = "Button Clicked";'>Click Me!</button>}
+\QA{
+Click the "View Site" button on this task. On the right-hand side, add JavaScript that changes the demo element's content to "Hack the Planet"
+}{
+We add the first code snippet in between the \cd{<script>} tags and see a pop-up telling us the answer: \textbf{JSISFUN}
+}
+Add the button HTML from this task that changes the element's text to "Button Clicked" on the editor on the right, update the code by clicking the "Render HTML+JS Code" button and then click the button.\\
+Once we are done, we move on to the next task
+}
+\T{Sensitive Data Exposure}{
+Sensitive Data Exposure takes place when the web developers release a non-cleaned version of the code and forget to delete some login credentials, hidden links to private parts of the site or other sensitive information.\\
+Whenever assessing a web application for security issues, always look at the source code first to look for hidden links or exposed login credentials.\\
+\QA{
+View the website on this link. What is the password hidden in the source code?
+}{
+Looking at the source code we find some lines commented out:\\
+\cd{<!--\\
+               \indent  TODO: Remove test credentials!
+\indent                 Username: admin
+\indent                 Password: testpasswd
+                -->}
+So we have our answer:\textbf{testpaswd}
+}
+}
+\T{HTML Injection}{
+HTML Injection is a vulnerability that occurs when unfiltered user input is displayed on the page. If user input doesn't get sanitised before getting displayed, an attacker may change the contents of the site and inject any other pieces of code.\\
+Input sanitasion is very important when securing a website, as usually front-end input gets transported to the backend and other frontend functionalities as well. \\
+When a user can control the way its input is displayed, they can submit HTML or JS code and the browser will use it directly on the page, submitting the page to the attacker's control.\\
+The general rule is never to trust user input. To prevent malicious input, the website developer should sanitise everything the user enters before using it in the JavaScript function; in this case, the developer could remove any HTML tags.\\
+\QA{
+View the website on this task and inject HTML so that a malicious link to http://hacker.com is shown. 
+}{
+We check the deployed website and see that any content we write in the input field gets displayed as "Welcome <input>" after clicking on "Say Hi!", so we assume we can insert a hyperlink to the desired webpage via \cd{<a  href=http://hacker.com></a>} and after clicking on "Say Hi" we get the answer \textbf{HTML\_INJ3CTI0N}
+}
+}

@@ -1,0 +1,114 @@
+\addcontentsline{toc}{subsubsection}{Exercise 3: Introductory Researching}
+\subsubsection*{Exercise 3: Introductory Researching}
+\begin{task}{Example Research Question}
+This exercise is meant to aid to internalize the "normal" chain of information gathering based on publicly available information:\\
+First, begin with a simple search of what we want to di, picking up terminology along the way until we can make a broader picture of what that means and how to use eventually required tools such as programs, packages etc.\\
+It comprises several questions:\\
+
+\begin{question}
+In the Burp Suite Program that ships with Kali Linux, what mode would you use to manually send a request (often repeating a captured request numerous times)?
+\end{question}
+\begin{answer}
+Repeater
+\end{answer}
+
+\begin{question}
+What hash format are modern Windows login passwords stored in?
+\end{question}
+\begin{answer}
+NTLM;
+\end{answer}
+
+\begin{question}
+What are automated tasks called in Linux?
+\end{question}
+\begin{answer}
+cron jobs
+\end{answer}
+
+\begin{question}
+What number base could you use as a shorthand for base 2 (binary)?
+\end{question}
+\begin{answer}
+base 16
+\end{answer}
+
+\begin{question}
+If a password hash starts with \$6\$, what format is it (Unix variant)?
+\end{question}
+\begin{answer}
+SHA512crypt
+\end{answer}
+\end{task}
+
+\begin{task}{Vulnerability Searching}
+This task revolves around the usage of a vulnerability or exploit database such as \href{https://www.exploit-db.com/}{Exploit-DB}.\\
+Other suggested possibilities are \href{https://nvd.nist.gov/vuln/search}{NVD} and \href{https://cve.mitre.org/}{CVE Mitre}.\\
+Use this database to search for exploitation methods on specific software (e.g WordPress, FuelCMS, etc.). \href{https://www.exploit-db.com/}{Exploit-DB} has even downloadable exploits ready to use "out of the box".\\
+Common Vulnerabilities and Exploits (CVEs) have the format "CVE-YEAR-NUMBER".
+\begin{question}
+What is the CVE for the 2020 Cross-Site Scripting (XSS) vulnerability found in WPForms?
+\end{question}
+\begin{answer}
+CVE-2020-10385
+\end{answer}
+\begin{question}
+There was a Local Privilege Escalation vulnerability found in the Debian version of Apache Tomcat, back in 2016. What's the CVE for this vulnerability?
+\end{question}
+\begin{answer}
+CVE-2016-1240
+\end{answer}
+\begin{question}
+What is the very first CVE found in the VLC media player?
+\end{question}
+\begin{answer}
+CVE-2007-0017
+\end{answer}
+\begin{question}
+If you wanted to exploit a 2020 buffer overflow in the sudo program, which CVE would you use?
+\end{question}
+\begin{answer}
+CVE-2019-18634
+\end{answer}
+No further explanation seems necessary, as the whole answer process consisted only of a straightforward search in the search bar of \href{https://www.exploit-db.com/}{Exploit-DB} with some keywords of the corresponding question.
+\end{task}
+\begin{task}{Manual Pages}
+Recommended to take a look at the {Linux Fundamentals} module to get a better first grasp of the working ways of said OS.\\
+This Tak deals with manual pages, accessed over the \code{man} command, of different programmes and tools. In order to get the answers, just type \begin{center}
+\code{man [command] } \end{center}
+and read through the switches until the desired answer is found.\\ 
+Eventually easen the process using \begin{center}
+\code{man [command] | grep "[search parameter]" -i}\end{center}
+\begin{question}
+SCP is a tool used to copy files from one computer to another.
+What switch would you use to copy an entire directory?
+\end{question}
+\begin{answer}
+\code{-r}
+\end{answer}
+\begin{question}
+fdisk is a command used to view and alter the partitioning scheme used on your hard drive.
+What switch would you use to list the current partitions?
+\end{question}
+\begin{answer}
+\code{-l}
+\end{answer}
+\begin{question}
+nano is an easy-to-use text editor for Linux. There are arguably better editors (Vim, being the obvious choice); however, nano is a great one to start with.
+What switch would you use to make a backup when opening a file with nano?
+\end{question}
+\begin{answer}
+-B
+\end{answer}
+\begin{question}
+Netcat is a basic tool used to manually send and receive network requests. 
+What command would you use to start netcat in listen mode, using port 12345?
+\end{question}
+\begin{answer}
+nc -l -p 12345
+\end{answer}
+
+\end{task}
+\begin{task}{Final Thoughts}
+Just a Checkbox without required answer and a recapitulation: There are no wrong sources of information: any information cna be potentially useful
+\end{task}

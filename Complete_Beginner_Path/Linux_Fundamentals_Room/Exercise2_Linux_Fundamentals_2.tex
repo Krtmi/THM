@@ -1,0 +1,138 @@
+\addcontentsline{toc}{subsubsection}{Exercise 2: Linux Fundamentals 2}
+\subsubsection*{Exercise 2: Linux Fundamentals 2}
+\label{Exercise 2: Linux Fundamentals 2}
+\externaldocument{Complete_Beginner_Path/Room2_Linux_Fundamentals/Exercise3_Linux_Fundamentals_3}
+In this section we'll connect to machines remotely, perform more useful commands to get the access permissions and much more and run the first scripts.\\
+The first task requires no further actions than clicking the checkbox
+\begin{task}[Accessing Your Linux Machine Using SSH (Deploy)]
+To access the THM machine via ssh we only need the command\\
+\code{ssh tryhackme$@$[IP\_ ADDRESS\_ OF\_ THE\_ MACHINE]}\\
+This can be done from the AttackBox inside the Exercise or via \code{openvpn} after \codenl{sudo openvpn username.ovpn}
+\end{task}
+\begin{task}[Introduction to flags and switches]
+In this task we review the \code{ls} command, especially its switches \code{-a, --all, --help}.\\
+In order to learn more about it we also use (introduce?) the \code{man} (manual) command, which provides a small explanation of the previously passed command
+
+THe first question is only a checkbox, and the task comprises the following questions: 
+\begin{Q}
+What directional arrow key would we use to navigate down the manual page?
+\end{Q}
+\begin{A}
+down
+\end{A}
+
+\begin{Q}
+What flag would we use to display the output in a "human-readable" way?
+\end{Q}
+\begin{A}
+\code{-h}, i.e \code{ls -h} outputs the contents of the current folder in a human readable way
+\end{A}
+
+\end{task}
+
+\begin{task}[Filesystem Interaction Continued]
+In this task, more basic commands for the Filesystem are introduced:\\ 
+\begin{tabular}{r|c|l}
+Command & Full Name & Purpose\\
+\hline
+\cd{touch}& touch & Create file\\
+\cd{mkdir} & make directory & Create a folder\\
+\cd{cp} & copy & Copy a file or folder\\
+\cd{mv} & move & Move a file or folder\\
+\cd{rm} & remove & Remove a file or folder\\
+\cd{file} & file & Determine the type of a file\\
+\end{tabular}
+
+To create a file, it suffices to use the command \codenl{touch testfile}
+Similarly to create and remove a folder or other file, or to get the type of a file via \cd{file testfile}.\\
+In order to move or copy files, one needs to pass a second argument to the command as a destination.
+\begin{Q}
+How would you create the file named "newnote"?
+\end{Q}
+\begin{A}
+\codenl{touch newnote}
+\end{A}
+\begin{Q}
+On the deployable machine, what is the file type of "unknown1" in "tryhackme's" home directory?
+\end{Q}
+\begin{A}
+Using \cd{file unknown1} we get thet its type is ASCII text
+\end{A}
+\begin{Q}
+How would we move the file "myfile" to the directory "myfolder"?
+\end{Q}
+\begin{A}
+We'd use the command \codenl{mv myfile myfolder}
+\end{A}
+\begin{Q}
+What are the contents of this file?
+\end{Q}
+\begin{A}
+Using \codenl{cat myfile} we get the flag 
+\flag{THM\{FILESYSTEM\}}
+\end{A}
+The last question only encourages the user to keep practicing and is resolved by clicking on a checkbox.
+\end{task}
+
+\begin{task}[Permissions 101]
+In this task we explore the permissions over files and user differences regarding them:\\
+With the command \cd{ls -lh} we can see the owner of each file and the permissions associated to them, the letters \cd{r, -w, --x} standing for Read, Write, Execute.\\
+Using the command \codenl{su user2} we can switch users to \cd{user2} after we deliver the corresponding password. Further specifying the switch \cd{-l, --login} we start a shell within the user's directory.\\
+The questions of this task deal with the changing of users:
+\begin{Q}
+On the deployable machine, who is the owner of "important"?
+\end{Q}
+\begin{A}
+Using \codenl{ls -lah} we see that the owner on important is \cd{user2}
+\end{A}
+\begin{Q}
+What would the command be to switch to the user "user2"?
+\end{Q}
+\begin{A}
+\cd{su user2} resp. \cd{su user2 -l}
+\end{A}
+The 3rd question is only a checkbox to click after switching users\\
+\begin{Q}
+Output the contents of "important", what is the flag?
+\end{Q}
+\begin{A}
+Using \cd{cat important} we get the flag: 
+\flag{THM\{SU\_ USER2\}}
+\end{A}
+\end{task}
+
+\begin{task}[Common Directories]
+
+Here some of the common directories to all Linux systems are displayed: 
+\begin{itemize}
+\item \cd{/etc}:\\
+Short for etcetera, commonplace location to system files for the OS.\\
+Especially important are the files \cd{passwd, shadow}, which show how the system stores the passwords for each user in SHA512.
+\item \cd{/var}:\\
+Short for variable data, stores data that are frequently accessed or written, e.g. log files under \cd{/var/log} or non user-associated data
+\item \cd{/root}:\\
+Home directory for the \cd{root} system user, not to be confused with \cd{/home} or \cd{/home/root}. 
+\item \cd{/tmp}: \\
+Short for temporary, volatile and used to store data used only once or twice. Deleted after restart.\\
+\textbf{NOTE:} Used in pentesting to store enumeration scripts and similar tools since any user can write to this folder by default.
+\end{itemize}
+
+The first task consists only of a checkbox.
+\begin{Q}
+What is the directory path that would we expect logs to be stored in?
+\end{Q}
+\begin{A}
+\cd{/var/log}
+\end{A}
+\begin{Q}
+What root directory is similar to how RAM on a computer works?
+\end{Q}
+\begin{A}
+\cd{/tmp}
+\end{A}
+\QA	{Name the home directory of the root user}
+	{\cd{/root}}
+
+The final task is also only a checkbox with the instruction to navigate through these folders in the deployed Linux machine. 
+\end{task}
+The last two Tasks consist of a recapitulation of the contents of this Room (\cd{ssh}, flags and switches on commands, users 101 and important Linux directories) and a diversion to the next room \nameref{LinuxFund3}.

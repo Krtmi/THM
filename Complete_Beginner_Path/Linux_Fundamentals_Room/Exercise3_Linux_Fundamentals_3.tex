@@ -1,0 +1,164 @@
+\addcontentsline{toc}{subsubsection}{Exercise 3: Linux Fundamentals 3}
+\subsubsection*{Exercise 3: Linux Fundamentals 3}
+\label{LinuxFund3}
+
+This is the final Exercise of the module, meant to introduce daily applications and uses of Linux, as well as provide an introduction to automation, package management and service and application logging. 
+
+After deploying the machine, we get started on the actual tasks: 
+\T{Terminal Text Editors}{
+In order to speed up and easen the process of saving notes from the terminal, \cd{echo} and pipeline operators are not optimal in the long run, hence the need of learning to use Terminal Text Editors.\\
+
+\begin{itemize}
+
+\item{\cd{nano}:}\\
+Standard text editor.Usage: 
+\codenl{nano filename}
+Navigate using arrows and enter newline with "Enter".\\
+Self-explanatory with help on commands on the bottom of the screen. Can also be used to create new files if the name provided doesn't exist.
+\item{\cd{VIM}:}\\
+Way more advanced.\\
+Customisable, provides Syntax Highlighting, works on all terminals, has lots of resources to it. 
+\end{itemize}
+\QA{
+Edit "task3" located in "tryhackme"'s home directory using Nano. What is the flag?
+}{Using \cd{nano task3} in the home directory we can plainly read the flag: 
+\begin{flag}
+THM\{TEXT\_ EDITORS\}
+\end{flag}
+}
+}
+
+\T{General/Useful Utilities}{
+This task covers the download and general transfer of files.\\
+
+For the first purpose we have \cd{wget}, a command used to download files via HTTP substituting browser access with the following syntax:
+\codenl{wget https://someaddress.com/some/subdirectory/somefile.txt}
+
+To transfer files securely using the SSH protocol we use SCP in any direction with the following syntax: 
+When transfering a file to a remote system: 
+\codenl{scp filenameonlocalsys.txt user@IPADDRESSREMOTESYS:/path/to/file/filenameonremotesys.txt}
+
+When copying from a remote system to the local one we use
+\codenl{scp user@IPADDRESSREMOTESYS:/path/to/file/nameremote.txt -O namelocal.txt}
+In general, \cd{scp source destination} sums up the command.\\
+
+To serve files from the host, we can use a preinstalled python3 module called HTTPSever via \codenl{python3 -m http.server}
+There is a better way of doing this, namely \href{https://github.com/sc0tfree/updog}{\underline{Updog}}, but we'll stick to HTTPServer for now.\\
+A useful way to access hidden fils or files we don't have permissions for is to create a webserver from the server the file is stored at and the get the file with \cd{wget}.\\
+The first questions consist of checkboxes to be crossed as we connect to the deployed instance and start a web server in the home directory via \cd{python -m http.server \&}. Note that the "\cd{\&}" is important as to be able to run the other commands in parallel as the launched webserver.\\
+
+\QA{
+Download the file http://10.10.182.189:8000/.flag.txt onto the TryHackMe AttackBox\\
+What are the contents?\\
+Note that the displayed IP was assigned at the time of deployment of the machine and needn't be the same every time
+}
+{
+Running\\
+\cd{tryhackme\@ linux3:$\sim$ \$python3 -m http.server\\
+tryhackme\@ linux3:$\sim$ \$wget http://10.10.182.189:800/.flag.txt \linebreak -O /home/tryhackme/flaglf3.txt\\
+tryhackme\@ linux3:$\sim$ \$nano flaglf3.txt}\\
+we get the flag
+\F{THM\{WGET\_ WEBSERVER\}}
+}
+We stop the HTTPServer and the Task is done.
+}
+\T{Processses 101}{
+In this task we get introduced to processes, i.e the programs running on the machine.\\
+They each have an associated ID referencing the starting order of the process, the PID.\\
+To see a list of the currently running processes, we use \cd{ps} to see our own running processes, and \cd{ps aux} to see all run by other users and those not running from a session.\\
+To see real time information on the processes running we use \cd{top}.\\
+In order to terminate said processes we can use the \cd{kill} command followed by the corresponding PID, e.g \cd{kill 1234}.\\
+We can further signal the process the way it shall end: 
+\begin{itemize}
+\item SIGTERM: Kill allowing some cleanup tasks
+\item SIGKILL: Kill the process without cleanupafterwards
+\item SIGSTOP: Stop / suspend a process
+\end{itemize}
+
+The process \cd{systemd} runs on start and hence all other pieces of software run as child processes of \cd{systemd}.\\
+In order to get other applicaitons to start on boot we need the command \cd{systemctl [option] [service]}, which allows us to interact with the \cd{systemd} process/daemon.\\
+Some interesting applications to start on boot are web servers, database servers or file transfer servers.\\
+We will be telling the apache web server to start manually and the system to launch apache2 on boot.\\
+Using the four options of \cd{systemctl} (Start, Stop, Enable and Disable) we tell \cd{systemcl start apache2}\\
+
+In order to background a process we can add the operator \& to the command at execution or pressing \cd{Ctrl + Z} at runtime.\\
+To foreground we first need to find out the processes running in the background via \cd{ps aux} and then bring it to the foreground with the command \cd{fg}\\
+
+The first question is a reading confirmation.\\
+\QA{
+If we were to launch a process where the previous ID was "300", what would the ID of this new process be?
+}{
+301
+}
+\QA{
+If we wanted to cleanly kill a process, what signal would we send it?
+}{
+SIGTERM
+}
+\QA{
+Locate the process that is running on the deployed instance (10.10.209.114). What flag is given?\\Note the change in the IP, due to a reconnection.
+}{
+Using \cd{ps aux | grep THM} we see a running process called \cd{THM\{PROCESSES\}}
+}
+\QA{What command would we use to start the same service on the boot-up of the system}
+{systemctl enable myservice}
+\QA{What command would we use to bring a previously backgrounded process back to the foreground?}{\cd{fg}}
+}
+\T{Mantaining Your System: Automation}{
+In order to schedule tasks such as running commands, backing up files or launching programs, we use the \cd{cron} process and how to interact with it via \cd{crontabs}.\\
+A crontab is a special file with formatting recognised by the \cd{cron} process with the following needed values:\\
+
+\begin{tabular}{r|l}
+Value & Description\\
+\hline
+MIN & What minute to execute at\\
+HOUR & What hour to execute at\\
+DOM & What day of month to execute at\\
+MON & What month of the year to execute at\\
+DOW & What day of the week to execute at\\
+CMD & Command to be executed
+\end{tabular}\\
+
+E.g, to back up the "Documents" folder of the user "cmnatic" every 12 hours we format it as follows: \\
+\cd{0 */12 * * * cp -R /home/cmnatic/Documents /var/backups/}\\
+
+Note that the formatting accepts * as a wildcard.\\
+Other helpful links to use Crontabs are \href{https://crontab-generator.org/}{Crontab Generator} and \href{https://crontab.guru/}{Cron Guru}.\\
+They can also be edited with \cd{crontab -e} and listed with \cd{crontab -l}\\
+The first question is a reading check.\\
+\QA{
+When will the crontab on the deployed instance (10.10.130.101) run?
+}{
+Using \cd{crontab -l} we see \cd{@reboot /var/opt/processes.sh}, so the answer is \cd{@reboot}
+}
+}
+\T{Maintaining Your System: Package Management}{
+When submitting software, it is best to store it in an apt repository while waiting for approval.\\
+To add additional community repositories to the initial configuration, use the \cd{add-apt-repository} or listing another repository.\\
+We can always use other package installers such as \cd{dpkg} to install software, but the \cd{apt} or \cd{add-apt-repository} possibilities have the advantage of updating the addeed packages at the same time our system does.\\
+To install software, we need to check the GPG (Gnu Privacy Guard) key provided by the developers against the key of the downloaded software.\\
+This takes place on the example of Sublime Text as follows: 
+\begin{enumerate}
+\item Download the GPG keyy and add it to the list of trusted keys:\\
+\cd{wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -}
+\item Add Sublime Text 3 to the trusted apt sources list: 
+	\begin{enumerate}
+		\item Create a file \cd{touch sublime-text.list} in \cd{/etc/apt/sources.list.d}
+		\item Add and save the ST3 repo into this file: \\
+		\cd{deb https://download.sublimetext.com/ apt/stable/}
+		\item Run \cd{apt update} to add this entry to the recognised entries\\
+		\item Install the trusted software via \cd{apt install sublime-text}
+	\end{enumerate}
+\end{enumerate}
+To remove packages we run \cd{add-apt-repository --remove} followed by the package name or manually deleting the file from above and then \cd{apt remove [software-name]} to remove the package.
+}
+\T{Maintaining Your System: Logs}{
+Recall that log files are stored in \cd{/var/log}. These files  contain logging information for applications and services running on the system.\\
+E.g, they keep track of fail2ban (used to monitor brute force attempts), firewalls, the access and error logs and much more.\
+The exercises consist of checking on the file \cd{/var/log/apache2/access.log.1}, the only accessible file in the required folder apache2.\\
+We see as log info:\\
+\codenl{10.9.232.111 - - [04/May/2021:18:18:16 +0000] "GET /catsanddogs.jpg HTTP/1.1" 200 51395 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"}
+\QA{What is the IP address of the user who visited the site?}{10.9.232.111}
+\QA{What file did they access?}{catsanddogs.jpg}
+}
+The last task is a summary of the learned abilities on this room, such as using terminal text editors, downloading and serving contents with the HTTPServer, processes, crontabs, package management and log information, as well as a recommendation for other rooms: \href{https://tryhackme.com/room/bashscripting}{Bash Scripting} and \href{https://tryhackme.com/room/catregex}{Regular Expressions}

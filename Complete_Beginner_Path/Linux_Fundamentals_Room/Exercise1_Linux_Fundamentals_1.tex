@@ -1,0 +1,122 @@
+\addcontentsline{toc}{subsubsection}{Exercise 1: Linux Fundamentals 1}
+\subsubsection*{Exercise 1: Linux Fundamentals 1}
+\begin{task}[Introduction]
+This is just a Checkbox after a text explaining the ubiquouity of Linux as an OS and providing a hinsight of the learning objectives of the room
+\end{task}
+
+\begin{task}[A bit of background on Linux]
+Linux is based on UNIX (another OS), very lightweight, customizable and extensible, e.g from as a server to a full desktop.
+\begin{question}
+Research: What year was the first release of a Linux operating system?
+\end{question}
+\begin{answer}
+1991.\\
+For further details, the first operating system kernel was released on Sep. 17, 1991.
+\end{answer}
+\end{task}
+
+\begin{task}[Interacting With Your First Linux Machine (In-Browser)]
+This task consists only of the deployment of a machine and the clicking of a checkbox to signal when the machine has been deployed
+\end{task}
+
+\begin{task}[Running your first few commands]
+In this task we learn about the commands \code{echo} and \code{whoami}
+\begin{question}
+If we wanted to output the text "TryHackMe", what would our command be?
+\end{question}
+\begin{answer}
+\code{echo TryHackMe} (also \code{echo "TryHackMe"})
+\end{answer}
+\begin{question}
+If we wanted to output the text "TryHackMe", what would our command be?
+\end{question}
+\begin{answer}
+Running \code{whoami} in the deployed machine we get the user:tryhackme
+\end{answer}
+\end{task}
+
+\begin{task}[Interacting with the file system]
+Here we will practice with the commands to navigate and output contents of the filesystem:\\
+\code{ls, cd, cat, pwd}
+
+\begin{question}
+On the Linux machine that you deploy, how many folders are there?
+\end{question}
+\begin{answer}
+\code{~\$ls} shows folder1, folder2, folder3 and folder4, hence the answer is: \\
+4
+\end{answer}
+
+\begin{question}
+Which directory contains a file?
+\end{question}
+\begin{answer}
+Looking one by one using \code{ls folder[\#]} we see that the only one containing files is:\\
+folder4
+\end{answer}
+
+\begin{question}
+What is the contents of this file?
+\end{question}
+\begin{answer}
+\code{~\$cat folder4/note.txt}\\
+Hello World!
+\end{answer}
+\begin{question}
+Use the cd command to navigate to this file and find out the new current working directory. What is the path?
+\end{question}
+\begin{answer}
+Either seeing the \code{pwd} command on the user directorz we land in or doing as the task requires we see:\\
+home/tryhackme/folder4
+\end{answer}
+\end{task}
+
+\begin{task}[Searching for files]
+In this task we will use \code{find} and \code{grep} to look in a finer way for contents of the file system. 
+
+\begin{question}
+Use grep on "access.log" to find the flag that has a prefix of "THM". What is the flag?
+\end{question}
+\begin{answer}
+\code{~\$grep "THM" access.log} gives us an entry on May 04, 2021: \\
+13.127.130.212 - - [04/May/2021:08:35:26 +0000] "GET THM{ACCESS} lang=
+en HTTP/1.1" 404 360 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Ap
+pleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.3
+6" \\
+and we take this THM\{ACCESS\} to be the required flag
+\end{answer}
+\end{task}
+
+\begin{task}[An introduction to Shell Operators]
+This task introduces useful shell operators: 
+
+\begin{tabular}{r|l}
+\& & This operator allows you to run commands in the background of your terminal.\\
+\&\& & This operator allows you to combine multiple commands together in one line of your terminal.\\
+> & This operator is a redirector - meaning that we can take the output from a command (such as using cat to output a file) and direct it elsewhere.\\
+> > & This operator does the same function of the \> operator but appends the output rather than replacing (meaning nothing is overwritten).
+\end{tabular}
+
+The arising questions are a straightforward interpretation of this upper table:
+\begin{question}
+If we wanted to run a command in the background, what operator would we want to use? 
+\end{question}
+\begin{answer}
+\&
+\end{answer}
+
+\begin{question}
+If I wanted to replace the contents of a file named "passwords" with the word "password123", what would my command be?
+\end{question}
+\begin{answer}
+\code{~\$echo password123 > passwords}
+\end{answer}
+\begin{question}
+Now if I wanted to add "tryhackme" to this file named "passwords" but also keep "passwords123", what would my command be
+\end{question}
+\begin{answer}
+\code{~\$ echo tryhackme >> passwords}
+\end{answer}
+\end{task}
+Tasks 8 and 9 are a recap and a diversion to the next room, respectfully, and hence skipped. \\
+Friendly reminder to Terminate all machines after deploying them after finishing. 

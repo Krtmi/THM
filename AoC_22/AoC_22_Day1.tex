@@ -1,0 +1,89 @@
+\addcontentsline{toc}{subsection}{AoC 22, Day 1: Someone's coming to town!}
+\subsection*{AoC22, Day 1: Someone's coming to town!}
+This day's thematic revolves around Security Frameworks: 
+\subsubsection*{NIST Cybersecurity Framework}
+	Five essential functions:
+	\begin{itemize}
+	\item Identify
+	\item Protect
+	\item Detect
+	\item Respond
+	\item Recover
+	\end{itemize}
+	This way, prioritise cybersec investments and engage in continuous improvement towards target cybersec profile. 
+	
+\subsubsection*{ISO 27000 Series}
+ISO as International Organization of Standardization. Especially relevant are ISO 27001 and ISO 27002
+
+\subsubsection*{MITRE ATT\&CK Framework}
+Knowledge base of \textbf{Tactics, Techniques and Procedures (TTP)} to understand behaviours. methods, tools and strategies established for an attack to identify adversary plans of attack. 
+\subsubsection*{Cyber Kill Chain}
+Describes the structure of an attack: 
+\begin{enumerate}
+\item Target identification
+\item Decision and order to attack the target
+\item Target destruction
+\end{enumerate}
+
+This further establishes 7 stages: 
+\begin{enumerate}
+\item Recon
+\item Weaponization
+\item Delivery
+\item Exploitation
+\item Installation
+\item Command \& Control
+\item Actions on Objectives
+\end{enumerate}
+
+\subsubsection*{Unified Kill Chain}
+Unification of \textbf{MITRE ATT\&CK and Cyber Kill Chain} frameworks.\\
+Published in 2017, reviewed in 2022 by Paul Pols.\\
+Model to defend against cyber attacks from adversary's perspective offering sec teams blueprint for analyising and comparing threat intel.\\
+3 cycles, 18 phases in total based on TTPs:\\
+
+\textbf{CYCLE 1: IN}\\
+Goal: Gain access to the system.
+Critical steps: 
+\begin{enumerate}
+\item Reconnaissance: Research on the target using public information
+\item Weaponisation: Set up the structure for Command and Control (C2)
+\item Delivery: Deliver payloads to target in form of e.g phishing and supply chain attacks
+\item Social Engineering: Trick the target into performing untrusted and unsafe action against received payload
+\item Exploitation: Use an eventual vulnerability to trigger the payload
+\item Persistence: Leave a fallback presence to be able to reaccess the target
+\item Defence Evasion: Remain anonymous, avoiding defence mechanisms, deleting evidence of their presence
+\item Command \& Control: Establish a communicaation channel between attacker and compromised structure using step 2
+\end{enumerate}
+
+\textbf{CYCLE 2: THROUGH}
+Goal: gaining more access and privileges to assets within the network.\\
+Do: 
+\begin{enumerate}
+\item Pivoting: Use persistence system as attack launchpad for other systems un the network
+\item Discovery: Gather information about compromised system or discover further vlnerabilities
+\item Privilege Escalation: Seek higher privileges exploiting vulnerabilites or misconfigurations
+\item Execution: Download and execute malicious code\
+\item Credential Access: Seek stored credentials as part of the attack
+\item Lateral Movement: Move around different systems using above credentials
+\end{enumerate}
+
+\textbf{CYCLE 3: OUT}\\
+Goal: Cause as much damage as possible and escape undetected. 
+Steps:
+\begin{enumerate}
+\item Colection: Aggregate all information
+\item Exfiltration: Get the information out of the network
+\item Impact: Use acquired privileges to manipulate, interrupt and sabotage
+\item Objectives: Define and understand possible further objectives of the attackers
+\end{enumerate}
+
+\textbf{Question 1:}\\
+Who is the adversary that attacked Santa's network this year?\\
+\textbf{Answer 1:}\\
+The Bandit Yeti\\
+
+\textbf{Question 2:}\\
+What's the flag that they left behind?\\
+\textbf{Answer 2:}\\
+THM\{IT'S A Y3T1 CHR1\$TMA\$\}

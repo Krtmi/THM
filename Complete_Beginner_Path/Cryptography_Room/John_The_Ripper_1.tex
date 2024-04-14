@@ -1,0 +1,201 @@
+\subsubsection*{John The Ripper}
+\addcontentsline{toc}{subsubsection}{John The Ripper}
+\label{JohnTheRipper_1}
+\T{John who?}{
+John the Ripper is (maybe together with hashcat) one of the most important hash cracking tools as it provides a huge versatility regarding the types of hashes it can crack together with a well-performing cracking speed.\\
+
+As we saw in the previous room, a hash is a way of masking the input of a function in a way that to any input the output has a fixed length, and any minimal variation of the input provokes a complete different output.\\
+Hashes are secure from its conception, as their underlying algorithms are designed to work only one way, and they cannot be resolved having only the output if the function (see \href{https://en.wikipedia.org/wiki/P_versus_NP_problem}{P vs NP relationship}, i.e algorithms to be solved in polynomial time cannot always be solved in polynomial time, but can be verfied in nondeterministic polynomial time when given the output of said function as well).\\
+
+The way John (for short) works is usually by using a dictionary attack, i.e given a (usually large) wordlist where the possible password may be, called a dictionary, it hashes all words in said dictionary and compares their hash to the target hash looking for a match.\\
+Once found, it calls a success. 
+}
+\T{Setting up John the Ripper}{
+The easiest way to install John is via \cd{sudo apt install john}, we installed the Jumbo version via:
+\begin{enumerate}
+\item \cd{git clone https://github.com/openwall/john -b bleeding-jumbo john}
+\item \cd{cd john/src/}
+\item \cd{./configure --without-openssl} (as it was raising an error)
+\item \cd{make -s clean \&\& make -sj4}
+\end{enumerate}
+We then run john by calling \cd{~/john/run/./john}
+}
+\T{Wordlists}{
+In order to perfrm dictionary attacks, one first needs a dictionary to base them on. The most common password list is \cd{rockyou.txt}, a password leak from a website called rockyou.com in 2009. We can access this dictionary either per se on under the SecLists repository under \cd{/Passwords/Leaked-Databases}
+}
+\T{Cracking Basic Hashes}{
+The basic syntax of john is as follows: 
+\cdnl{john [options] [path to file]}
+where the file in quesstion is the file containing the hashes.\\
+When providing a wordlist we select the \cd{--wordlist} switch, resulting in 
+\cdnl{john --wordlist=[path to wordlist] [path to hash file]}
+assuming john will recognise the hash format automatically.\\
+
+In case john doesn't recognise the hash format nicely, we might need to identify the hashes using an external tool such as \cd{hashid} from the Linux command line, or hash-id,a Python program we can call by \cd{python3 hash-id.py} and get from \cdnl{wget https://gitlab.com/kalilinux/packages/hash-identifier/-/raw/kali/master/hash-id.py}
+
+We can the pass the specific format we assume to be in place with the switch \cd{--format}. When dealing with a standard (i.e non salted) hash, we add \cd{raw-} before the format, e.g \cd{--format=raw-md5}.\\
+To get all possible formats we can use \cd{john --list=formats} and to see the possibilities it provides we use \cd{john --list=formats | grep -iF "<format>"}\\
+
+In this sections, the questions all follow the same pattern: Hash format identification and hash cracking of the files put at our disposal in the task files, once extracted.\\
+We always follow the same solving pattern, namely: 
+\begin{enumerate}
+\item \cd{hashid hashX.txt}
+\item \cd{~/john/run/./john --wordlist=/usr/share/wordlists/rockyou.txt hashX.txt --format=<hash format>}
+\end{enumerate}
+\QA{
+hash1
+}{
+MD5:biscuit
+}
+\QA{
+hash2
+}{
+SHA1:kangeroo
+}
+\QA{
+hash3
+}{
+SHA256:microphone
+}
+\QA{
+hash4
+}{
+Whirlpool:colossal
+}
+}
+\T{Cracking Windows Authentication Hashes}{
+In this task, we'll use John to crack NTHash hashes. This is the format used by Windows to store user and service passwords, also called NTLM as a reference to the previous format LM. As a historical note, NT stood for ``new technology'' when it was released. \\
+The most common way to get our hands on some NTHash or NTLM hashes is by dumping the SAM database on a Windows machine using tools such as mimikatz or from the Active Directory database. One does not always need to crack the hash and can sometimes just pass it along for credential validation, but some times we are forced to crack it. 
+\QA{
+What do we need to set the ``format'' flag to, in order to crack this?
+}{
+nt
+}
+\QA{
+What is the cracked value of this password?
+}{
+mushroom
+}
+}
+\T{Cracking /etc/shadow Hashes}{
+In Linux, password hashes are stored in the \cd{/etc/shadow} file, which contains one entry per line for each user account of the system. It is only accessible by the root user, so this is a task for after gaining the corresponding privileges.\\
+Even after getting access to this file, John still does not recognise it fully, so  we need to transform the /etc/shadow file into a format John understands using an built-in tool called \cd{unshadow} with the following syntax: 
+\cdnl{unshadow [path to passwd] [path to shadow]}
+where the path to passwd points at the file containing a copy of the \cd{/etc/passwd} file, the path to shadow points to the copy of \cd{/etc/shadow}. We usually then pipe its output to a text file in the following manner: 
+\cdnl{unshadow local\_passwd local\_shadow > unshadowed.txt}
+In case some time we'd need to specify the format, note we have to mark sha512crypt.\\
+
+We take the corresponding lines from the passed files and save them as passwd.txt and shadow.txt, unshadow them and feed them to John, getting the root password:
+\QA{
+What is the root password?
+}{
+1234
+}
+}
+\T{Single Crack Mode}{
+Instead of using a wordlist to crack the passwords we can also use the single crack mode, which uses only the username information to try and crack the password heuristically changing the characters in the name, e.g from Markus as a username it tries with Markus1, Markus2, Markus3, etc., MArkus, MARkus, MARKus, etc., Markus!, Markus\$, etc.\\
+This password attempting technique is called mangling. \\
+This method are also compatible with Gecos fields of UNIX, i.e each of the fields separated by a colon ``:'' in the /etc/shadow and /etc/passwd files, hence John can take all of its information for its mangling attempts. \\
+The syntax of a single crack mode is 
+\cdnl{john --single --format[format] [path to file]}
+Note that we have to change the format of the file we are feeding John when using this method, as it must consist of ``username:hash''.\\
+Since we are told the given hash corresponds to a user named ``Joker'', we edit the file to have it at the beginning of the hash and run John to get the password:
+\QA{
+What is Joker's password?
+}{
+We find it to be an md5 hash, and after specifying it we get the password \textbf{Jok3r}
+}
+}
+\T{Custom Rules}{
+One can define a set of rules for a specific mangling attempt oneself, called custom rules, especially useful when one knows more about the passwords one is trying to crack.\\
+
+For example, most password rules require a capital letter, a number and a symbol, which are usually place at the first, previous to last and last positions, respectively. This is a pattern we can exploit to our advantage, and correspondingly want to save as an information we want to pass to John.\\
+Custom rules are defined in the john.conf file, found under \cd{john/run/john.conf}. One can find more info on \href{https://www.openwall.com/john/doc/RULES.shtml}{this} wiki. \\
+
+In order to create a set of rules called THMRules, we'd find as a first line in the file: \\
+\cd{[List.Rules:THMRules]}, defining the name we will later use to call the rule when deploying John.\\
+The different most common word modifying rules, specified before quotation marks, are:
+\begin{itemize}
+\item \cd{Az} appends the word with the defined characters.
+\item \cd{A0} prepends the word with the defined characters.
+\item \cd{c} capitalises the characters positionally.
+\end{itemize}
+These can, of course, be combined if desired.\\
+To define the characters to include to the pattern, we will use square brackets. We can use:
+\begin{itemize}
+\item \cd{[0-9]} includes the numbers 0-9.
+\item \cd{[0]} includes the number 0.
+\item \cd{[A-z]} includes upper and lowercase characters.
+\item \cd{[A-Z]} includes only uppercase letters.
+\item \cd{[a-z]} includes only lowercase letters.
+\item \cd{[a]} includes only the letter a.
+\item \cd{[!\$\%$@$]} includes the symbols !, \$, \%, $@$.
+\end{itemize}
+ Summing up, a rule capitalising letters and appending all numbers and the above symbols would look like this:
+ \cdnl{cAz "[0-9] [!, \$, \%, $@$]"}
+ Then the rule calling this custom rule would be like this: 
+ \cdnl{john --wordlist=[path to wordlist] --rule=THMRules [path to file]}
+ Note that we don't call the \cd{--single} switch as it is the first method John tries to use. \\
+ 
+As a final note: When stuck, look at the custom rules in Jambo John, line 678. \\
+\QA{
+What do custom rules allow us to exploit?
+}{
+password complexity predictability
+}
+\QA{
+What rule would we use to add all capital letters to the end of the word?
+}{
+Az"[A-Z]"
+}
+\QA{
+What flag would we use to call a custom rule called "THMRules"?
+}{
+\cd{--rule=THMRules}
+}
+}
+\T{Cracking Password Protected Zip Files}{
+One can also use John to crack the password of password protected files after passing it through another John's tool, namely \cd{zip2john}.\\
+The syntax is similar to the previous ``unshadow'' command, and works as follows:
+\cdnl{john/run/./zip2john [options] [zip file] > [output file] }
+where the options switch allows to pass specific checksum options, usually not used. \\
+An example usage engaging with the files in this task would look like this: 
+\cdnl{john/run/./zip2john secure.zip > zip\_hash.txt}
+This way, we can then pass the \cd{zip\_hash.txt} file to John for cracking with the normal syntax.
+\QA{
+What is the password for the secure.zip file?
+}{
+pass123
+}
+\QA{
+What is the contents of the flag inside the zip file?
+}{
+After finding the right password, we pass it on the ZIP file and read the flag:
+\F{THM\{w3ll\_d0n3\_h4sh\_r0y4l\}}
+}
+}
+\T{Cracking Password Protected RAR Archives}{
+One can crack the password of RAR archives the same way: first passing it to \cd{rar2john} and then feeding it to John.\\
+\QA{
+What is the password for the secure.rar file?
+}{
+password
+}
+\QA{
+What is the contents of the flag inside the rar file?
+}{
+We need \cd{unrar} to extract its contents, and after doing so we output the flag.txt file:
+\F{THM\{r4r\_4rch1ve5\_th15\_t1m3\}}
+}
+}
+\T{Cracking SSH Keys with John}{
+One of the most common uses of John in a CTF environment is the cracking of SSH private keys from id\_rsa files for the case the login is not authenticated directly but over the private key \cd{id\_rsa}, which then requires a password. That is the password we attempt to crack in this case. In the same manner as before, we will use \cd{ssh2john} if it is installed, else we will call \cd{ssh2python.py} over Python3 in the same syntax.\\
+As a brief recapitulation and for the sake of completeness, the syntax on a Jumbo installation would look as follows:
+\cdnl{john/run/./ssh2john [id\_rsa private key file] > [output file]}
+and we then feed this outout file to a John dictionary attack.\\
+Note: in this case John would not want to crack it, so resorting to Hashcat for this task was necessary, though not corresponding to the initial aim of the task. We had to trim the output from the ssh2john program to keep the format Hashcat would understand, i.e without the leading name, resulting in the syntax:
+\cdnl{hashcat -m 22931 hashedkey\_onlyhash.txt /usr/share/wordlists/rockyou.txt}
+and get the password \textbf{mango}
+}
+We then check the Openwall Wiki as instructed in the ``Further Reading'' Task and are done with the room. \\
+We even win a badge! (:

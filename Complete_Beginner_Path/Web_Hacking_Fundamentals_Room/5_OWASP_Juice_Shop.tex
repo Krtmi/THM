@@ -1,0 +1,176 @@
+\addcontentsline{toc}{subsubsection}{OWASP Juice Shop}
+\subsubsection*{OWASP Juice Shop}
+\label{OWASP_Juice_Shop}
+\T{Open for business!}{
+In order to test some of the vulnerabilities we learned in the OWASP Top 10, OWASP created a vulnerable website where we will be testing the following points:
+\begin{itemize}
+\item Injection
+\item Broken Authentication
+\item Sensitive Data Exposure
+\item Broken Access Control
+\item Cross Site Scripting (XSS)
+\end{itemize}
+From Task 3 onwards we will have a flag as an answer.
+}
+\T{Let's go on an adventure!}{
+We open Burp Suite, add the machine's IP to the scope and deactivate the intercept so we can map the website in full.
+We can already answer the first question by seeing the review ow the first product, the apple juice (1000 ml):
+\QA{
+What's the administrator's email address?
+}{
+admin$@$juice-sh.op
+}
+\QA{
+What parameter is used for searching?
+}{
+We then answer the second question by performing a simple search on the amplifying glass on the upper right corner of the page. We see the URL change to 
+\cdnl{http://10.10.12.218/\#/search?q=sth}
+hence having the search parameter \textbf{q}.
+}
+\QA{
+What show does Jim reference in his review?
+}{
+We see a review of jim$@$juice-sh.op in the Green Smoothie product saying ``Fresh out of a replicator''. A simple google search gives us a reference to a Star Trek machine.
+}
+}
+\T{Inject the juice}{
+Some of the most common injection attacks are SQL injections (for databases), Command injection, to make web applicaftions execute the code one wants and Email Injection, allowing malicous users to send email messages without authorization.\\
+We will be using SQL Injection in this task.\\
+
+Note: from here on the answers are going to be the flags on the successful completion of tasks.\\
+
+\QA{
+Log into the administrator account
+}{
+In a general case we perform this SQL injection by intercepting the login attempt under any credentials and substituting the mail address we give by ``\cd{\{``email:'':``<email>'--'' , ``password'':``<anything>''\}}''.\\
+Note the \cd{'--} after the mail address we provide. The ' is meant to close the brackets in SQL query, and -- are the sign of a comment, hence rendering all further content, such as password of furhter credentials, useless. This way, our known username will output a TRUE result, since it does exist, and the rest of the query will not be regarded.\\
+If we want \textbf{any} login or we don't even have a true username to login as, we pass the query 
+\cdnl{\{``email:'':``' or 1=1--'' , ``password'':``<anything>''\}}
+to ensure a TRUE value in the query via the 1=1 statement.\\
+ In this case we intercept the request and change the credentials to \cd{email:``admin@juice-sh.op'--'', ``password:'':``sth''} and forward the request. Once we are in, we see the ``flag'':
+ \F{32a5e0f21372bcc1000a6088b93b458e41f0e02a}
+}
+\QA{
+Now log in to Bender's account
+}{
+The same way we did with the admin account, we swap his mail for the Bender mail we saw on the review of the Banana Juice (1000 ml) \cd{bender$@$juice-sh.op} and perform the same '-- SQL injection to get into his account.\\
+We then get the flag \F{fb364762a3c102b2db932069c0e6b78e738d4066}
+}
+}
+\T{Who broke my lock?}{
+In this task we'll look at two Broken Authentication vulnerability risks: weak passwords in high privileged accounts and Forgotten password mechanisms.\\
+We power up Burp and add the IP of the machine to the scope.
+\QA{
+Bruteforce the administrator account's password!
+}{
+It is not the same to have logged into their account, as we did last task, as knowing the password, which we might use for persistency if SQL injection gets patched, other platforms or later unsuspicious requests.\\
+To bruteforce said password, we intercept the login request from the admin's account and derive it to the Interuder tab. There, we'll do the following:
+\begin{enumerate}
+\item Clear all ``§'' signs.
+\item Replace the password string by two §§ marks.\\
+These act as Burp's quotation marks.
+\item Load the selected payload list under the ``Payload'' tab.\\
+In this case, we'll be using SecLists's Passwords/Common-Credentials/best1050.txt
+\item Check for a 200 OK Status Code.
+\item We have our password.
+\end{enumerate}
+In this case we see a status code 200 at the ``admin123'' attempt, so we try the login with these credentials.
+We then get the flag 
+\F{c2110d06dc6f81c67cd8099ff0ba601241f1ac0e}
+}
+\QA{
+Reset Jim's password
+}{
+We are going to try and exploit the password reset mechanism to log into Jim (jim$@$juice-sh.op)'s account.\\
+Under the Forgot Password page we see as security question ``What is your elder sibling's middle name?''. Since this is the same Jim from the replicator task above, we assume some connection to Star Trek. After searching for ``Jim Star Trek'' we see some ``James Tiberius Kirk'' as result. In his wiki page we see George Samuel Kirk Jr. as a brother, so the answer to the security question must be ``Samuel''.\\
+We reset the password to "newpwd" and complete the task with the following flag:
+\F{094fbc9b48e525150ba97d05b942bbf114987257}
+}
+}
+\T{AH! Don't look!}{
+This task focuses on the (un)safe storage of sensitive data. It must be carried out throughout the whole webpage, but some times it is only covered partly, and this is going to be our attack vector for the task.\\
+\QA{
+Access the Confidential Document!
+}{
+On the legal note on the /about page, we see a link to the subdomain /ftp/legal.md. \\
+This gives us the idea that the /ftp directory may contain more important documents, so we navigate to it and see a very interesting \cd{acquisitions.md} file. As this would be a very relevant business file, we download it. After returning to the homepage we see the flag corresponding to the task:
+\F{edf9281222395a1c5fee9b89e32175f1ccf50c5b}
+}
+\QA{
+Log into MC SafeSearch's account
+}{
+In \href{https://www.youtube.com/watch?v=v59CX2DiX0Y&embeds_referring_euri=https\%3A\%2F\%2Ftryhackme.com\%2F\&source_ve_path=OTY3MTQ\&feature=emb_imp_woyt}{this video} we hear MCSafeSearch say his password is ``his favourite pet's first name, his dog, MrNoodles, it don't matter if you know 'cause i replaced the vowels with zeroes''.\\
+We then log into mcsafesearch$@$juice-sh.op:Mr. N00dles and get the next flag:
+\F{66bdcffad9e698fd534003fbb3cc7e2b7b55d7f0}
+}
+\QA{
+Download the Backup file!
+}{
+We return to the previously found /ftp directory and try to download the package.json.bak file. We are not allowed, since we get an error 403: Only .md and .pdf files are allowed.\\
+The way to work around this is the ``Poison Null Byte'', which looks like this: \%00. What a Null Byte does is, as a Null terminator, tell the server to terminate reading at that point. This way we can pass a ``correct'' URL, ending in an .md file, which the server will allow us to donwload, but actually only downloading the file specified until the Null Byte. We have to encode the \% sign into URL format, hence pass it as \%25 giving us the final URL:
+\codenl{http://10.10.45.40/ftp/package.json.bak\%2500.md}
+We download said file and when returning to the main site we see the flag:
+\F{bfc1e6b4a16579e85e06fee4c36ff8c02fb13795}
+}
+}
+\T{Who's flying this thing?}{
+This task will verse about the Broken Access Control vulnerability, which we categorize into Horizontal privilege escalation, so called when an attacker accesses data or performs actions as another user with \textbf{the same} level of permissions, and Vertical privilege escalation, taking place when an attacker can perform actions or commands from a user with \textbf{higher} level of permissions.\\
+
+\QA{
+Access the administration page!
+}{
+We will do so by accessing the Debugger on the Web Developer Tools and viewing a JS file called \cd{main-es2015.js} after transfering it into human readable form by clicking on the \{\} button. There, we find an especially relevant term, namely \cd{path: administration}, hinting at an administration site under \cd{\#/administration}. We log in as the administrator again and access said page, getting the flag:
+\F{946a799363226a24822008503f5d1324536629a0}
+As a means of avoiding this, one better only load the parts of the application that need to be used by the current user. This way, we ``wouldn't have known'' where to look for said administrator site.
+}
+\QA{
+View another user's shopping basket
+}{
+While logged in as admin, we intercept the loading request of the admin, seeing as first line of the request:
+\cdnl{GET /rest/basket/1 HTTP/1.1}
+We change the user requesting basket form 1 to 2 (i.e the request to \cd{GET /rest/basket/2 HTTP/1.1}) and forward it further.\\
+We get the flag: 
+\F{41b997a36cc33fbe4f0ba018474e19ae5ce52121}
+}
+\QA{
+Remove all 5-star reviews!
+}{
+We can do this by navigating back to the administration site logged in as the admin user. There, we delete the only 5-star review and get the flag
+\F{50c97bcce0b895e446d61c83a21df371ac2266ef}
+}
+}
+\T{Where did that come from?}{
+This task will deal wit Cross Side Scripting (XSS), a vulnerability allowing an attacker to run JavaScript in web applications and one of the most common flaws.\\
+The three major types of XSS attacks are:
+\begin{enumerate}
+\item DOM (Special): DOM XSS (Document Object Model-based Cross-site Scripting) uses the HTML environment to execute malicious javascript. This attack uses the <script></script> HTML tag.
+\item Persistent (Server-side): Persistent XSS is javascript run when the server loads the page containing it, usually taking place when the server does not sanitise the user input when uploading it. Most commonly found on blog posts.
+\item Reflected (Client side): Reflected XSS is javascript run on the client-side of the web application, usually found when the server doesn't sanitise search data.
+\end{enumerate}
+\QA{
+Perform a DOM XSS!
+}{
+This will take place using the \textbf{iframe} element in a javascript alert tag: \cd{<iframe src=``javscript:alert(`xss`)''>}.\\
+Inputing this in the search bar we'll trigger an ``XSS'' alert. Since iframe is a common HTML element of web applications, other websites produce the same result, as long as they allow the user to modify the ifram or other DOM elements.\\
+As a countermeasure, the search bar input should be sanitised prior to sending the request to the server submitting the related information. We got the flag:
+\F{9aaf4bbea5c30d00a1f5bbcfce4db6d4b0efe0bf}
+}
+\QA{
+Performa persistent XSS!
+}{
+After logging in to the admin account, we navigate to the ``Last Login IP'' page, where we see our THM IP. We will log out and intercept the request, triggering the saving of the last login IP. In Burp Suite, on the Inspector Tab, we add a Header called True-Client-IP, where we add the same pop-up alert as before. This way, when logging into the same site again, the server will give us the element we passed onto it again popping up the alert.\\
+After some trouble and having to clear the search data as advised in task 1, we get the flag:
+\F{149aa8ce13d7a4a8a931472308e269c94dc5f156}
+}
+\QA{
+Perform a reflected XSS!
+}{
+Within the admin account, we access the Order History page, where we see all orders with their related id after clicking on the corresponding truck icon. We will substitute the oder id by our already known popup message and reload the page. This way, the server will look up for the value we passed without checking first for its sanitation. We get the flag:
+\F{23cefee1527bde039295b2616eeb29e1edc660a0}
+As the OWASP Juice Shop notes, this attack is potentially harmful on Docker.
+}
+}
+\T{Exploration!}{
+We see our scoreboard under the extension \cd{/\#/score-board/page} and directly get the flag
+\F{7efd3174f9dd5baa03a7882027f2824d2f72d86e}
+}

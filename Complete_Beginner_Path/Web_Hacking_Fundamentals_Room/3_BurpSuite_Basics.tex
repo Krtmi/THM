@@ -1,0 +1,201 @@
+\subsubsection*{Burp Suite: The Basics}
+\addcontentsline{toc}{subsubsection}{Burp Suite: The Basics}
+\label{Burp_Basics}
+\T{Outline}{
+This room will cover the foundations of Burp Suite, especially the first steps, configuration and tools.\\
+The most important tool of Burp Suite is the Burp Proxy, which will be dealt with in depth.\\
+After deploying the machine and connecting via VPN, we move on to the next task.
+}
+\T{Getting Started: What is Burp Suite?}{
+Burp Suite is a Java-based framework meant to be a swiss knife for pentesting, having become the industry standard tool for hands-on web app security assessments.\\
+It is also common as a tool for accessing mobile applications, and these same features translate almost directly to the testing of Application Programming Interfaces (APIs) powering mobile apps.\\
+
+At the simplest level, Burp can intercept and manipulate the traffic between the attacker and target webserver.\\
+One the request has been captured, it can be resent to other parts of the Burp Suite to be further interacted with, hence providing a very useful framework for manual web app testing.\\
+
+We will be working with the free to use Burp Suite Community edition, as the Professional version is quite pricey. In exchange for the subscription, it adds an automated vulnerability scanner, a non-rate-limited fuzzer/bruteforcer, project savers, report generation, a built-in API to allow integration, and access to further extensions.\\
+Bup Suite Enterprise is used for continuous scanning of webapp vulnerabilities as Nessus does with infrastructure instead for the manual analysis the other versions provide.\\
+\QA{
+Which edition of Burp Suite will we be using in this module?
+}{
+Burp Suite Community
+}
+\QA{
+Which edition of Burp Suite runs on a server and provides constant scanning for target web apps?
+}{
+Burp Suite Enterprise
+}
+\QA{
+Burp Suite is frequently used when attacking web applications and \underline{\hspace{1cm}} applications.
+}{
+mobile
+}
+}
+\T{Getting Started: Features of Burp Community}{
+The tools available in the Community edition are:
+\begin{itemize}
+\item \textbf{Proxy:} The most well-known tool, it allows to intercept and alter requests before forwarding them to their original target.
+\item \textbf{Repeater:} Second tool in importance, allows to capture, modify and resend the same request over and over.\\
+This tool is especially useful for the generation of payloads through trial and error, e.g through SQLInjection.
+\item \textbf{Intruder:} Limited in the Community edition, it is used to spray a target with requests. Often used to bruteforce attacks or to fuzz endpoints.
+\item \textbf{Decoder:} Used to transform (encode/decode) data during the communication, be it before delivering a payload or when receiving information. Less relevant than the previous tools.
+\item \textbf{Comparer:} Used to compare data at word or byte level.
+\item \textbf{Sequencer:} Used to assess the randomness of tokens, e.g cookie values, to analyze potential attack vectors.
+\end{itemize}
+Another useful feature of Burp is its flexibility and acceptance of new extensions, whether in Java, Python with the Jython Interpreter or Ruby with the JRuby Interpreter. Said extensions can be found in the Burp Suite Extender module.
+\QA{
+Which Burp Suite feature allows us to intercept requests between ourselves and the target?
+}{
+Proxy
+}
+\QA{
+Which Burp tool would we use if we wanted to bruteforce a login form?
+}{
+Intruder
+}
+}
+\T{Getting Started: Installation}{
+If we wish to use our own machine to perform the attacks, we need to have a version of BurpSuite downloaded.\\
+Going to their website, downloading the appropriate version and running the installer through their wizard require no further actions.
+}
+\T{Getting Started: The Dashboard}{
+We access Burp to see our first project, not disk-based as we are working with the free Community edition.\\
+
+Starting with the upper left quadrant we can define background tasks to be run during our use of Burp Suite. Especially ``Live Passive Crawl'' will be useful, as it logs the pages we visit.\\
+
+The lower left quadrant is the Event log, where we can see our Burp activity during the running session.\\
+
+The upper right quadrant is reserved for the Pro version. This Issue Activity quadrant it lists all vulnerabilities found by the automated scanner, ranked by severity and likelihood of the vulnerability.\\
+
+The lower right quadrant, the Advisory quadrant, gives more information about the found vulnerabilities as well as references and suggested remediations.\\
+
+Throughout the Burp Suite application we can consult help menus marked by a question mark in  a circle.
+\QA{
+What menu provides information about the actions performed by Burp Suite, such as starting the proxy, and details about connections made through Burp?
+}{
+Event log
+}
+}
+\T{Getting Started: Navigation}{
+We can switch modules across the upper bar. When the selected module has multiple submodules, they will be displayed below the original tab.\\
+They can also be popped out into different windows to easen the view.\\
+To switch to the most relevant tabs of Burp, we have the following keyboard shortcuts:\\
+
+\begin{tabular}{r|l}
+Shortcut & Related Tab\\
+\hline
+\cd{Ctrl + Shift + D} & Switch to Dashboard\\
+\cd{Ctrl + Shift + T} & Switch to Target\\
+\cd{Ctrl + Shift + P} & Switch to Proxy\\
+\cd{Ctrl + Shift + I} & Switch to Intruder\\
+\cd{Ctrl + Shift + R} & Switch to Repeater
+\end{tabular}
+
+\QA{
+Which tab Ctrl + Shift + P will switch us to?
+}{
+Proxy tab
+}
+}
+\T{Getting Started: Options}{
+We can customize the settings of Burp Suite, be it globally or project related.\\
+When in conflict, Project Settings have the priority, but in the Community edition they will get lost at restart.\\
+
+On the Settings menu, we can access many categories, especially set module-specific setting on the corresponding tabs.\\
+The new search bar in the Settings window provides a big help when looking for a specific category.\\
+\QA{
+In which category can you find reference to a ``Cookie jar''?
+}{
+Either by typing it in the search bar or looking individually, we find the Cookie jar part under the \textbf{Sessions} category.
+}
+\QA{
+In which base category can you find the "Updates" sub-category, which controls the Burp Suite update behaviour?
+}{
+Again unfolding all tabs we find it under the \textbf{Suite} menu.
+}
+\QA{
+What is the name of the sub-category which allows you to change the keybindings for shortcuts in Burp Suite ?
+}{
+Hotkeys
+}
+\QA{
+If we have uploaded Client-Side TLS certificates, can we override these on a per-project basis (Aye/Nay)?
+}{
+Under Network > TLS > Client TLS certificates we see a ``Override options for this project only'' switch, hence it is a possible option.
+}
+}
+\T{Proxy: Introduction to the Burp Proxy}{
+Proxy is the most important tool of Burp, allowing us to intercept and alter requests and responses between us as client and the target.\\
+When making a request through Burp Proxy, it won't continue to the server until we decide to let it do so.\\
+
+When intercepting a request, the requesting browser will hang until we free the request, and in parallel the request will show in the Proxy Tab of the Burp Suite. THere, we can drop the request or eventually alter it and then let it go through by clicking on ``Forward''. We can also send the request to other Burp modules via ``Send to...'', copy it as a cURL command, save it as a file, etc.\\
+Once we are done, remember to deactivate the traffic interception!\\
+
+By default, all traffic and WebSocket requests will be logged also with a deactivated Interception, and said logging can be viewed in the corresponding HTTP resp. WebSocket history subtabs of the Proxy.\\
+It is also set by default that the sever responses not be intercepted unless explicitly asked to do so, but this and much more can be changed in the Proxy settings.\\
+There, we can set almost any logical conditions to the traffic being intercepted and logged, e.g ``Or Request Was Intercepted'' to catch responses to relevant requests and ``And URL Is in target scope'' to  only filter traffic to a certain target.\\
+Match and Replace allows us to perform regexes on incoming and outgoing requests, e.g change the user agent or remove all incoming cookies.
+}
+\T{Proxy: Connecting through the Proxy (Foxy Proxy)}{
+To proxy the traffic through Burp Suite, we can either use the embedded browser of set a proxy on our local browser. This latter option is more common.\\
+
+The default Burp Proxy works by opening an interface on \cd{127.0.0.1:8080}, but instead of sending all traffic through this port, we rather use a Firefox extension called FoxyProxy which allows us to save proxy profiles.\\
+
+Once we download and enable the FoxyProxy extension, we go to the Options tab and add our proxy configurations on \cd{127.0.0.1:8080} and save it under the name "Burp". If Burp Suite is not running but FoxyProxy is activated, all traffic will be stopped.\\
+
+We activate the proxy, try accessing the homepage for the deployed machine and see the request on Burp Proxy.
+\QA{
+Read through the options in the right-click menu.
+
+There is one particularly useful option that allows you to intercept and modify the response to your request. 
+}{
+Do Intercept > \textbf{Response to this request}.
+}
+}
+\T{Proxy: Proxying HTTPS}{
+To be able to proxy HTTPS we need to download a Portswigger CA certificate from \href{http://burp/cert}{here} and add it to the allowed certificates on our browser of choice, usually under Settings > Privacy and Security > View Certificates.
+}
+\T{Proxy: The Burp Suite Browser}{
+Burp comes with a built-in Chromium browser, pre-configured to use the proxy without further configurations.\\
+Note that this browser has to run in a low privilege account or the option to run the browser without a sandbox has to be checked.
+}
+\T{Proxy: Scoping and Targeting}{
+As we (involuntarily) saw capturing traffic for some previous tasks, Burp Proxy captures all traffic, which can lead to a huge number of data to be filtered through. In order to only target the websites we actually want, we want to set the scope to these sites and make for a bit more of clarity in our traffic logging.\\
+We set the target we want in the Target tab, where we see a list of accessed targets on the left, and right-clicking our desired target and on Add To Scope. Then, we will be offered to stop logging everything else.\\
+In the Scope subtab or under Scope settings we can add or remove selected IPs of the scope.\\
+In order to also stop intercepting traffic outside of our scope, we can go to the proxy options and select ``And URL Is in target scope''
+}
+\T{Proxy: Site Map and Issue Definitions}{
+Under Target there are three subtabs:
+\begin{itemize}
+\item \textbf{Site map:} maps out the visited websites in a tree structure, creating a tree dependency of webpages by simply browsing around. It is very useful when mapping an Application Program Interface (API), since every endpoint the page gets data from will show up here.\\
+The Pro version allows to map everything out automatically.
+\item \textbf{Scope Settings:} Allows to control the Scope for the project.
+\item \textbf{Issue Definitions:} On the Pro version, here would be the vulnerability scanner. In the Community version, here is the list of vulnerabilities it looks for.
+\end{itemize}
+\QA{
+Take a look around the site on http://10.10.107.4/ -- we will be using this a lot throughout the module. Visit every page linked to from the homepage, then check your sitemap -- one endpoint should stand out as being very unusual!\\
+Visit this in your browser (or use the "Response" section of the site map entry for that endpoint)\\
+What is the flag you receive?\\
+}{
+Once we visit all possible folders, another endpoint shows up, namely \\
+\cd{http://10.10.107.4/5yjR2GLcoGoij2ZK}.\\
+Looking at the response from that endpoint we ser the flag:
+\F{
+\cd{THM\{NmNlZTliNGE1MWU1ZTQzMzgzNmFiNWVk\}}
+}
+}
+\QA{
+Look through the Issue Definitions list.\\
+What is the typical severity of a Vulnerable JavaScript dependency?
+}{
+Sorting by name, we see that a Vulnerable JavaScript dependency has severity \textbf{Low}
+}
+}
+\T{Practical: Example Attack}{
+Looking at \cd{http://10.10.107.4/ticket/} and seeing it as an entry field we would check for Cross-Site Scripting (XSS) among many others.\\
+Here, we will be using Reflected XSS.\\
+
+When we try to write non-email-address characters in the ``Email'' field, the client-side filter deletes them.\\
+What we can do to bypass this is intercept the request and forge our XSS by changing e.g the mail address we gave to \cd{<script>alert("Succ3ssful XSS")</script>} and see a pop up window with our string in it.
+}

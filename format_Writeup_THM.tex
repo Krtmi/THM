@@ -1,0 +1,89 @@
+\usepackage[utf8]{inputenc}
+\usepackage[useregional=numeric]{datetime2}
+\usepackage{blindtext}
+\usepackage{amsthm}
+\usepackage{thmtools}
+\usepackage{verbatim}
+%\usepackage[strings]{underscore}
+\usepackage{chngcntr}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+%package used to insert images
+\usepackage{graphicx}
+%packages used to reference external websites and cross-reference labels from different documents, respectively
+\usepackage{xr}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{nameref}
+\usepackage{enumitem} %used to continue enumeration after a break for clarification text.
+\usepackage{etaremune} %this package is used to have an enumeration with backwards counting.
+
+%Renaming and adjusting of names 
+\newenvironment{mune}{\etaremune}{\endetaremune}
+\newcommand{\Crackstation}{\href{https://crackstation.net}{Crackstation}}
+\newcommand{\code}{\texttt}
+\newcommand{\cd}{\texttt}
+\newcommand{\cdnl}{\codenl}
+\newcommand{\codenl}[1]{%
+	\begin{center}%
+		\texttt{#1}
+	\end{center}%
+}
+\newcommand{\bsl}{\backslash}
+
+\newcommand{\QA}[2]{%
+	\begin{Q}
+		#1
+	\end{Q}
+	\begin{A}
+		#2
+	\end{A}
+}
+
+\newcommand{\T}[2]{%
+	\begin{task}[\textbf{#1}]
+		#2
+	\end{task}
+%\newpage
+}
+
+\newcommand{\F}[1]{%
+	\begin{flag}
+		#1
+	\end{flag}
+}
+
+\newtheoremstyle{flagstyle}% <Name>
+  {\topsep}% <Space above>
+  {\topsep}% <Space below>
+  {\normalfont}% <Body font>
+  {}% <Indent amount>
+  {\bfseries}% <Theorem head font>
+  {:}% <Punctuation after theorem head>
+  {\newline}% <Space after theorem head>
+  {}% 
+  
+\declaretheorem[style = flagstyle, name = Flag, numbered = no]{flag}
+\declaretheorem[style = flagstyle, name = Question, numbered = no]{question}
+\declaretheorem[style = flagstyle, name = Question, numbered = no]{Q}
+\declaretheorem[style = flagstyle, name = Answer, numbered = no]{answer}
+\declaretheorem[style = flagstyle, name = Answer, numbered = no]{A}
+
+\declaretheoremstyle[bodyfont=\normalfont]{normalbody}
+\newtheoremstyle{normalbreak}% <Name>
+  {\topsep}% <Space above>
+  {\topsep}% <Space below>
+  {\normalfont}% <Body font>
+  {}% <Indent amount>
+  {\bfseries}% <Theorem head font>
+  {}% <Punctuation after theorem head>
+  {\newline}% <Space after theorem head>
+  {}% 
+  
+\declaretheorem[style=normalbreak, name=Task]{task}
+
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}{%
+	\setcounter{task}{0}%
+	\oldsubsubsection
+}

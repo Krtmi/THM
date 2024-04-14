@@ -1,0 +1,147 @@
+\subsubsection*{Hashing - Crypto 101}
+\addcontentsline{toc}{subsubsection}{Hashing - Crypto 101}
+\T{Key Terms}{
+This new topic needs getting of some nomenclature out of the way first to make sure we don't confuse concepts:
+\begin{tabular}{r|l}
+Plaintext & Data before encryption or hashing. Not necessarily text\\
+Encoding & NOT encryption, only a non human-readable representation of data, e.g hexadecimal, Base64, etc.\\
+Hash & Output of a hash function, also used as a verb: produce the hash of some data.\\
+Brute force & Combinatorial attempt to find the right solution to a posed problem by trying all possible solutions, i.e elements in the ``Wertebereich''\\
+Cryptoanalysis & Attack on a cryptographic concept by analysing the underlying mathematical structure
+\end{tabular}
+\QA{
+Is base64 encryption or encoding?
+}{
+Encoding (everyone in posession of a base64 string can decode it without need of a key)
+}
+}
+\T{What is a hash function?}{
+A hash function is a function that provides an output of a fixed length to any output such that it is virtually infeasible to reconstruct the input to a given output. To any minimal alteration in the input, the output should vary enormously, and it must also be fast to compute to any given input. \\
+It also lacks any key, making it very useful for password saving: instead of saving the password, a system may save its hash ``not caring'' about an attacker getting their hands on it, but still being able to check very quickly if the hash of the provided allegded password coincides with the saved hash.\\
+As per the pigeonholes theorem, a hash collision, i.e the same hash to two different inputs, is unavoidable. Despite \href{https://www.mscs.dal.ca/~selinger/md5collision/}{MD5} and \href{https://shattered.io/}{SHA1} having been made insecure due to engineered hash collisions, no attack could compromise both at the same time as of now, so checking both at the same time still ensures authenticity of the data.
+\QA{
+What is the output size in bytes of the MD5 hash function?
+}{
+MD5 is a 128-bit algorithm, i.e a 16 byte algorithm
+}
+
+\QA{
+can you avoid hash collision? (Yea/Nay)
+}{
+Nay
+}
+
+\QA{
+If you have an 8 bit hash output, how many possible hashes are there? 
+}{
+There are $2^8 = 256 $ possible hashes in such a function.
+}
+}
+\T{Uses for hashing}{
+In Cyber Security there are two main uses for hash functions: password storing (as stated above) and authenticity checks.\\
+As an example for a password leak, the well-known password list ``rockyou.txt''  comes from a MySpace's password leak and contains over 14 mio. passwords.\\
+Adobe had another very relevant password breach on poorly encrypted passwords as stated \href{https://nakedsecurity.sophos.com/2013/11/04/anatomy-of-a-password-disaster-adobes-giant-sized-cryptographic-blunder/}{here}, LinkedIn another of breachable SHA1 hashes, computable using GPUs.\\
+
+Hashing is especially useful as an alternative to an encryption method for passwords as it avoids the potential danger of a password leak which would make all passwords vulnerable, since it does not rely on a key nor a key owner. \\
+It comes with some downsides, though: Since collision is unavoidable, a single password can give access to multiple accounts if the password hashes coincide. \\
+It also incentivizes the creation of rainbow tables: a database of words with their corresponding hashes where an attacker may look up a hash looking for a collision. These are usually huge, and this lookup is still faster to compute than trying to reverse the hash on one's own.\\
+A small rainbow table is given as an example and as a help for the first question, where the hash is one of the ones shown.
+\QA{
+Crack the hash "d0199f51d2728db6011945145a1b607a" using the rainbow table manually.
+}{
+basketball
+}
+\QA{
+Crack the hash "5b31f93c09ad1d065c0491b764d04933" using online tools
+}{
+After trying \href{https://crackstation.net/}{CrackStation} without success, we find the solution on \href{https://hashes.com/en/decrypt/hash}{Hashes}: the solution is \textbf{tryhackme}
+}
+\QA{
+Should you encrypt passwords? (Yea/Nay)
+}{
+Nay, since it is best to hash them, and hashing is not an encryption method.
+}
+}
+\T{Recognising password hashes}{
+In order to crack the hash, one has to first identify which hash one is dealing with. One can use \href{https://pypi.org/project/hashID/}{this tool} or other automatation tools to identify hashes with prefix.\\
+It also very useful to know which context hashes may be found at, e.g a web application may rather use MD5 than Windows's NTLM (New Technology Lan Manager)\\
+Whenever hashes are given in standardized format in Unix systems, it comes in the format \cd{\$format\$round\$salt\$hash}. 
+In Windows, on the contrary, they follow the aforementioned NTLM, a variant of md4 visually identical to md5. \\
+On Linux password hashes are stored in \cd{/etc/shadow}, only readable by root, as opposed to the previous \cd{/etc/passwd}. On Windows they are stored in the Security Accpunt Manager (SAM). They are not meant to be dumpable on their own, but one can do it using tools such as mimikatz.\\
+The prefixes for the most common hash functions are:\\
+
+\begin{tabular}{r|c|l}
+Prefix & Algorithm & Usage\\
+\hline
+\$1\$ & md5crypt & Cisco, older Linux/Unix systems.\\
+\$2\$, \$2a\$, \$2b\$, \$2x\$, \$2y\$ & Bcrypt & Web applications.\\
+\$6\$ & sha512crypt & Most Linux/Unix systems per default.
+\end{tabular}\\
+
+More on this in \href{https://hashcat.net/wiki/doku.php?id=example_hashes}{hashcat's wiki} for hash examples. 
+\QA{
+How many rounds does sha512crypt ($6$) use by default?
+}{
+5000
+}
+\QA{
+What's the hashcat example hash (from the website) for Citrix Netscaler hashes?
+}{
+Finding hashcat's wiki and \cd{Ctrl + F} for Citrix, we see the hash: 
+\F{1765058016a22f1b4e076dccd1c3df4e8e5c0839ccded98ea}
+}
+\QA{
+How long is a Windows NTLM hash, in characters?
+}{
+Looking for an example NTLM hash and pasting it in e.g Notepadqq we see it is 32 characters long.
+}
+}
+\T{Password Cracking}{
+``Salting'' a hash is a method by which it gets spiced up, mixing the salt in the hash and rendering rainbow tables useless.\\
+In order to crack such a hash, one has to re-compute  all possibilities one wants to try (e.g rockyou.txt) and hope for a match using Hashcat or John the Ripper. \\
+This computation is performed on GPUs, as they have multiple cores and are very reliable for the underlying maths of the hash functions, hence making cracking on a GPU much faster than on a CPU. A notable exception of this is Bcrypt, as it is designed precisely to be more or less equally hard on both.\\
+Following this logic, it is best not to crack hashes on Virtual Machines, as they normally do not have access to the graphic card of the hosting computer, especially when using hashcat, at least prior to Kali 2020.2. Nonetheless, John the Ripper runs on the CPU and can be used in almost any environment without a problem, as well as Hashcat $\geq$ 6.0.\\
+Note: \textbf{NEVER} run the \cd{--force} switch in hashcat, as it can both lead to false positives and negatives.\\
+
+In the exercises we have to crack a series of hashes using Hashcat, John the Ripper or online tools: 
+\QA{
+\$2a\$06\$7yoU3Ng8dHTXphAg913cyO6Bjs3K5lBnwq5FJyA6d01pMSrddr1ZG 
+}{
+Using the rainbow tables from \href{hashes.com}{Hashes.com Identifier} we get the answer: The input to this Bcrypt hash is \textbf{85208520}
+} 
+\QA{
+9eb7ee7f551d2f0ac684981bd1f1e2fa4a37590199636753efe614d4db30e8e1
+}{
+We pass it to the indentifier of \href{hashes.com}{Hashes} and see it is possibly a SHA 256 hash.\\
+Passing it to the Decrypter we see the corresponding input is \textbf{halloween}.
+}
+We identify the next two hashes using \cd{hashid} and for time reasons we pass them to \href{hashes.com}{Hashes.com}:
+\QA{
+\$6\$GQXVvW4EuM\$ehD6jWiMsfNorxy5SINsgdlxmAEl3.yif0/c3NqzGLa0P.S7KRDYjycw5bnYkF5ZtB8wQy8KnskuWQS3Yr1wQ0
+}{
+<SHA-512>: \textbf{spaceman}
+}
+\QA{
+b6b0d451bbf6fed658659a9e7e5598fe
+}{
+<MD5>: \textbf{b6b0d451bbf6fed658659a9e7e5598fe}
+}
+}
+\T{Hashing for integrity checking}{
+Another of the most common uses for hashing is integrity checks, used as follows: the developing party hashes their final product and uploads the file to some site along with its corresponding hash. Any potential downloading party will download the file set at their disposal and hash it, then comparing it to the provided hash from the developers. Since small changes make for a significant hash change, it is virtually unfeasible the hashes of the actual file and a malicious file be equal.\\
+Especially, HMAC is the method of using a cryptographic function to verify data in such a way, as well at being possible to be used for authenticity checks. 
+
+\QA{
+What's the SHA1 sum for the amd64 Kali 2019.4 ISO? \url{http://old.kali.org/kali-images/kali-2019.4/}
+}{
+We check the provided link and download the SHA1SUMS file, then reading the one for the corresponding amd64 ISO:\\
+\cd{186c5227e24ceb60deb711f1bdc34ad9f4718ff9}
+}
+\QA{
+What's the hashcat mode number for HMAC-SHA512 (key = \$pass)?
+}{
+Running \cd{hashcat --help |grep HMAC-SHA512} gives us the following first line:\\
+\cd{1750 | HMAC-SHA512 (key = \$pass) | Raw Hash authenticated}.\\
+We then establish the answer to be \textbf{1750}
+}
+}

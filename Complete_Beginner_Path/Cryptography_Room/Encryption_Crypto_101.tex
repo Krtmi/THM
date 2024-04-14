@@ -1,0 +1,179 @@
+\subsubsection*{Encryption - Crypto 101}
+\addcontentsline{toc}{subsubsection}{Encryption - Crypto 101}
+\T{What will this room cover?}{
+This room will act as an introduction to the theory behind some of the applicated concepts we use constantly in these contexts, all with a focus on encryption.
+}
+\T{Key Terms}{
+This task serves as a recapitulation of key terms in the encryption context:
+\begin{itemize}
+\item \textbf{Ciphertext}: The result of encrypting a plaintext, encrypted data
+\item \textbf{Cipher}: A method of encrypting or decrypting data. Modern ciphers are cryptographic, but there are many non cryptographic ciphers like Caesar.
+\item \textbf{Plaintext}: Data before encryption, often text but not always. Could be a photograph or other file
+\item \textbf{Encryption}: Transforming data into ciphertext, using a cipher.
+\item \textbf{Encoding}: NOT a form of encryption, just a form of data representation like base64. Immediately reversible.
+\item \textbf{Key}: Some information that is needed to correctly decrypt the ciphertext and obtain the plaintext.
+\item \textbf{Passphrase}: Separate to the key, a passphrase is similar to a password and used to protect a key.
+\item \textbf{Asymmetric encryption}: Uses different keys to encrypt and decrypt.
+\item \textbf{Symmetric encryption}: Uses the same key to encrypt and decrypt
+\item \textbf{Brute force}: Attacking cryptography by trying every different password or every different key
+\item \textbf{Cryptanalysis}: Attacking cryptography by finding a weakness in the underlying maths
+\item \textbf{Alice and Bob}: Used to represent 2 people who generally want to communicate. They’re named Alice and Bob because this gives them the initials A and B. \\
+https://en.wikipedia.org/wiki/Alice\_and\_Bob for more information, as these extend through the alphabet to represent many different people involved in communication.
+\end{itemize}
+\QA{
+Are SSH keys protected with a passphrase or a password?
+}{
+passphrase
+}
+}
+\T{Why is Encryption important?}{
+Encryption and cryptography are almost ubiquitous in any data transmission context, such as any login, SSH connections and many more.\\
+The main goals of cryptography are protecting confidentiality and ensuring integrity and authenticity, be it by means of encryption, certificates or checksums. \\
+A common standard is PCI-DSS of the PCI regulations, stating that sensitive data should be stored and transmitted encryptedly.\\
+Note: This is not the case for the storing of passwords unless handling with a password manager. Passwords should be stored as hashes, not as plaintext, no matter the encryption method used.
+
+\QA{
+What does SSH stand for?
+}{
+Secure Shell
+}
+\QA{
+How do webservers prove their identity?
+}{
+Certificates
+}
+\QA{
+What is the main set of standards you need to comply with if you store of process payment card details?
+}{
+PCI-DSS
+}
+}
+\T{Crucial Crypto Maths}{
+In this section, the Modulo operator (\%) is introduced: this operation gives takes two inputs and outputs the remainder of the division of the first by the second. \\
+Its cryptographical relevance resides in the fact that it is unfeasible to revert, since there are infinitely many possible preimages to a divisor and modulo.\\
+It is implemented in nearly every programming language, and to be called in the Linux terminal one needs the following syntax: 
+\cdnl{expr a \% b}
+\QA{
+What's 30\%5?
+}{
+0
+}
+\QA{
+What's 25\%7
+}{
+4
+}
+\QA{
+What's 118613842 \% 9091
+}{
+This one we didn't compute per hand, but passing \cd{expr 118613842 \% 9091} to the command line we get 3565 as an answer.
+}
+}
+\T{Types of Encryption}{
+There are two main encryption types: symmetric and asymmetric.\\
+Symmetric encryption relies on the same key to encrypt and decrypt data, being more vulnerable on the one side but way faster on the other. As an example, AES's keys are 128 or 256 bits long, DES were 56 bits long, although now it should not be used as the algorithm has already been broken.\\
+Asymmetric encryption relies on a pair of complementary, mutually inverse encryption and decryption keys, usually called private and public keys. Someone wanting to send a message to a user uses this user's public key to send a message, and this user can decrypt it using their private key.\\
+As it is slower, it is most commonly used for the exchange of keys for symmetric encryption. Common examples of asymmetric encryption are RSA and Elliptic Curve Cryptography. The keys for asymmetric cryptography are usually longer, though ECC shortens the key length ostensibly. RSA has 2048 to 4096 bit keys.
+\QA{
+Should you trust DES? (Yea/Nay)
+}{
+Nay (as it has been broken)
+}
+\QA{
+What was the result of the attempt to make DES more secure so that it could be used for longer?
+}{
+After a bit of research we  find an improvement of the DES method that has not yet been broken and relies on the threefold application of the DES algorithm and is called \textbf{Triple DES}
+}
+\QA{
+Is it ok to share your public key? (Yea/Nay)
+}{
+Yea. As the name implies, the public key is meant to be public and used by other people to send to one encrypted messages. 
+}
+}
+\T{RSA - Rivest Shamir Aldeman}{
+This algorithm relies on the difficulty to revert a multiplication of prime numbers into said factors, since it is basically a ``trial and error'' method.\\
+
+In CTF challenges some times one has to break some RSA encryption, and the developer of this room recommends \href{https://github.com/Ganapati/RsaCtfTool}{RsaCtfTool} and \href{https://github.com/ius/rsatool}{rsatool}.\\
+The variables in the RSA algorithm are $p, q, m, n, e, d$, which respectivley stand for:
+\begin{itemize}
+\item $p, q$ are large prime numbers with $p*q = n$
+\item $(n, e)$ is the public key
+\item $(n, d)$ is the private key
+\item $m$ is the message as plaintext
+\item $c$ is the cyphertext (encrypted text)
+\end{itemize}
+In a CTF context, one is usually provided with some of these values and needs to break the encryption and decrypt a message to retrieve the flag. \\
+\QA{
+$p = 4391, q = 6659$. What is $n$?
+}{
+Passing \cd{expr 4931 $\backslash$* 6659} we get 29239669
+}
+}
+\T{Establishing Keys Using Asymmetric Cryptography}{
+As stated before, asymmetric encryption is commonly used for the exchange of keys for symmetric encryption, which is way faster.\\
+
+Metaphorically speaking, one imagines the public key as a lock and the private key as the key for said lock. In order to communicate with someone, one gets the public key the lock is meant to represent from this person and encrypts the message with said key (one locks the box the message gets put in with their lock) and sends it back to the other communicating party. \\
+Then, said party unlocks their lock with the key they have and read the message, possibly consisting of the key for symmetric encryption.\\
+
+In a real-world situation, the process is a bit more complex, as it also requires authenticity checks. \\
+One can read more on the working way over HTTPS \href{https://robertheaton.com/2014/03/27/how-does-https-actually-work/}{here}.
+}
+\T{Digital signatures and Certificates}{
+A digital signature is a way to prove the authenticity of a file, especially to aid in the identification of their authors.\\
+This is best done encrypting the file in question with the author's private key, such that it can be verified with the public key the author provides, verifying their identity.\\
+Certificates work in a similar way, but for servers, using a chain of trust arising from a Root Certificate Authoroty (CA), which then decides who to trust and expand the trust net to, who can again issue certificates on their own based on the authority of the root CA. \\
+One can get a HTTPS certificate for one's own domain using Let's Encrypt for free. It is worth doing it when setting up a website.\\
+
+\QA{
+Who is TryHackMe's HTTPS certificate issued by?
+}{
+We can see the issuer of the certificate in Firefox by clicking on the padlock near the URL bar. Still, VPNs, ADBlockers and Antiviruses can interfere in establishing the right CA, but we see the issuer for THM is \textbf{E1}.
+}
+}
+\T{SSH Authentication}{
+SSH does not only work on a username:password authentication mechanism basis, but also with RSA(by default) key authentication.\\
+The standard SSH key generation program is \cd{ssh-keygen}\\
+
+Private SSH keys are to be stored secretly and not to be shared, same as a standard passphrase would do. The only way to avoid someone using one's own private key is to encrypt it. The passphrase is only used to decrypt the SSH key and never leaves one's system. This way, one can use John The Ripper to crack encrypted SSH keys and manage to impersonate the SSH key owner.\\
+Note: when generating SSH key pairs to log in to a remote machine, it is good practice to generate the key pair in one's machine and then copy the public key over so the private key never exists on the target machine.\\
+
+Per default, these keys are stored on the \cd{~/.ssh} folder for OpenSSH. The \cd{authorized\_keys} folder holds public keys allowed to access the server if key authentication is enabled (default for root users).\\
+Note that only the owner has read or write permissions on the key.\\
+The syntax to use the keys is: 
+\cdnl{ssh -i <SSH key> user$@$host}
+
+This way, we can get an upgrade on a reverse shell assuming the user has login enabled. Leaving an SSH key in \cd{authorized\_keys} is a good backdoor allowing us to circumvent the problems of unstabilised reverse shells (e.g lack of tab completion).
+
+\QA{
+What algorithm does the key use?
+}{
+Running \cd{file idrsa.id\_rsa} we see it is a \textbf{\cd{PEM RSA private key}}
+}
+\QA{
+Crack the password with John The Ripper and rockyou, what's the passphrase for the key?
+}{
+I seem to be encountering again and again a problem with John the ripper when it comes to SSH keys, but identifying it as \cd{-m 22931} and passing it to hashcat after some format editing we get the password \textbf{delicious}.
+}
+}
+\T{Explaining Diffie Hellman Key Exchange}{
+As stated above, asymmetric communication is usually to exchange keys for symmetric communication. This is the main concept underlying the idea of ``Key Exchange''.\\
+Nonetheless, there are other ways to do this key exchange without asymmetric encryption, namely the Diffie Hellman (DH) Key Exchange.\\
+Agreeing on some publicly known information $K$, both Alice and Bob can send each other the respective application of their private keys to said public information in the form $AK$ and $BK$, exchanging this information publicly. They then apply their respective private keys to the received message and both land at the newly agreed upon key $ABK = AKB = BKA$.\\
+This DH Key Exchange is often used alongside RSA public key cryptography to prove the identity of the person one is talking to with digital signing, hence preventing man-in-the-middle attacks. 
+}
+\T{PGP, GPG and AES}{
+PGP is the acronym for Pretty Good Privacy and is a software providing encryption for files, digital signing and more.\\
+GPG (GnuPG) is its Open Source pendant and is used to protect private keys with passphrases. This passphrases can be cracked with john after passing it through \cd{gpg2john}.\\
+See the man page for GPG \href{https://www.gnupg.org/gph/de/manual/r1023.html}{here}.\\
+AES is another encryption stardard which stands for Advanced Encryption Standard and is also called Rjindael. It was established as a replacement for DES after this latter's flaws were discovered. Both DES and AES operate on blocks of data.\\
+
+For this task, we download the ZIP file attached, extract it and see an encrypted message and a private key. We import the attached key
+via \cd{gpg --import tryhackme.key} and decrypt the unprotected message with \cd{gpg message.gpg}. We then read the file and find the secret word \textbf{Pineapple}.
+}
+\T{The Future - Quantum Computers and Ecnryption}{
+Regarding at the future, especialy at the perspective of Quantum Computers, we can make several assumptions:\\
+Asymmetric criptography will be very vulnerable, as quantum computing shall be especially strong against the underlying algorithms of RSA or ECC.\\
+Similarly, AES with 128 bits will likely be broken, but AES 256 not so easily. Triple DES is again going to be vulnerable.\\
+The current USA recommendations are RSA-3072 or better for asymmetric encryption and AES-256 or better for symmetric encryption.\\
+\href{https://doi.org/10.6028/NIST.IR.8105}{Here} is a series of issues and possible solutions on the current encryption, as well as in the book ``Cryptography Apocalypse'' by Roger A. Grimes. 
+}

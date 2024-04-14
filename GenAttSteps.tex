@@ -1,0 +1,42 @@
+\section*{General Attacking Steps}
+\addcontentsline{toc}{section}{General Attacking Steps}
+\begin{enumerate}
+\item Enumeration via a Port Scan with Nmap.\\
+More on Nmap in the writeup for the \nameref{Nmap} exercises.
+\end{enumerate}
+When auditing a website checking for vulnerabilites:\\
+Check the \nameref{Methodology_WebSite_Audit_Vuln} or the \nameref{Stepwise_WriteUp_Web_Hacking} enumeration for an actual stepwise CTF.
+\subsection*{Nmap switches}
+\addcontentsline{toc}{subsection}{Nmap switch summary}
+\begin{tabular}{|r|l|}
+\hline
+\textbf{Host discovery:} & \\
+\hline
+\cd{-Pn} & Treat all hosts as online\\
+\cd{-p a-b} & Scan ports a to b\\
+\cd{-p-} & Scan all ports\\
+\hline
+\raggedleft{\textbf{Scans:}}& \\
+\hline
+\textbf{TCP Scans:} & \\
+\cd{-sS} & SYN Scan\\
+\cd{-sT} & Connect() Scan\\
+\cd{-sA} & ACK Scan\\
+\cd{-sN} & Null Scan\\
+\cd{-sF} & FIN Scan\\
+\cd{-sX} & Xmas Scan\\
+\cd{-sO} & IP Protocol Scan\\
+\hline
+\textbf{Other scans:} &\\
+\cd{-sC} & Default script scan\\
+\cd{-A} & Aggressive scan: \cd{-O -sV-sC --traceroute}\\ 
+\hline
+\textbf{Service detection:} & \\
+\cd{-sV} & Version info\\
+\hline
+\textbf{OS Detection:} & \\
+\cd{-O} & OS detection\\
+\hline
+\end{tabular}
+\subsection*{Metasploit Reverse Shells}
+See \nameref{Reverse_Metasploit_Steps}
