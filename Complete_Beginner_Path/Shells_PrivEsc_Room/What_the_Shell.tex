@@ -378,4 +378,18 @@ client.Close\%28\%29\%22
 }
 Note that this has been URL encoded to be used without further need for adjustment (besides the bolded IP and PORT) in a GET parameter
 }
+\T{Next Steps}{%
+Despite the whole set of shell-related tools we have learned so far, said shells are very unstable, so we have to try to get other access ways, e.g via SSH.\\
+SSH keys are stored in the \cd{/home/<user>/.ssh} folder, and in some CTF contexts some ssh credentials can be found in the target system.\\
+One can also add a new account with some exploits, or use \href{https://dirtycow.ninja/}{DirtyC0w} to gain write access to read-only files as a low-privileged user, or even intendedly writeable \cd{/etc/shadow} or \cd{/etc/passwd} to get quick SSH access to the target.\\
+
+On Windows, said approach is not as easy, but sometimes it is possible to find passwords for running services in the registry. VNC servers often let passwords stored in plaintext in the registry, and some versions of the FileZilla FTP server also store credentials in an XML file at \cd{\dt{C:\Program Files\FileZilla Server\FileZilla Server.xml}} or \cd{\dt{C:\xampp\FileZilla Server\FileZilla Server.xml}} be it as MD5 hashes or in plaintext.\\
+The best case scenario is to get a shell running as SYSTEM user or admin account with high privileges. That way we could add our own account to the admin group and log in over RDP, telnet, winexe, psexec, WinRM or any other remote connection method. In order to do so, we run:
+\cdnl{net user <username> <password> /add}
+\cdnl{net localgroup administrators <username> /add}
+\textbf{Summary:} We use reverse and bind shells to gain RCE on a target, but they will almost never suffice, since we'll prefer a native shell we want to escalate into using a ``normal'' way to access the machine, better suited for further exploitation.
+}%
+\T{Practice and Examples}{%
+
+}%
 \end{document}
